@@ -1,5 +1,5 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
-import { User, UserProps } from '@/domain/blog/enterprise/entities/user'
+import { User, UserProps } from '@/domain/app/enterprise/entities/user'
 import { PrismaUserMapper } from '@/infra/database/prisma/mappers/prisma-user-mapper'
 import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { faker } from '@faker-js/faker'

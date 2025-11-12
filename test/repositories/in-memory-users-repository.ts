@@ -1,7 +1,7 @@
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { PaginationParams } from '@/core/repositories/pagination-params'
-import { UserRepository } from '@/domain/blog/application/repositories/user-repository'
-import { User } from '@/domain/blog/enterprise/entities/user'
+import { UserRepository } from '@/domain/app/application/repositories/user-repository'
+import { User } from '@/domain/app/enterprise/entities/user'
 
 export class InMemoryUsersRepository implements UserRepository {
   public items: User[] = []

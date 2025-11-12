@@ -1,4 +1,4 @@
-import { User } from "@/domain/blog/enterprise/entities/user";
+import { User } from "@/domain/app/enterprise/entities/user";
 
 export class UserPresenter {
   // ou static present()
@@ -6,7 +6,7 @@ export class UserPresenter {
     return {
       id: user.id.toString(),
       userName: user.userName,
-      password: user.password,
+      email: user.email,
     };
   }
 }

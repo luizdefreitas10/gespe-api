@@ -1,4 +1,4 @@
-import { Encrypter } from '@/domain/blog/application/cryptography/encrypter'
+import { Encrypter } from '@/domain/app/application/cryptography/encrypter'
 import { JwtService } from '@nestjs/jwt'
 
 export class JwtEncrypter implements Encrypter {

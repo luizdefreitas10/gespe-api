@@ -14,41 +14,90 @@ datasource db {
 }
 
 model User {
-  id       String    @id @default(uuid())
-  userName String    @unique
-  email    String    @unique
-  password String
-  posts    Post[]
-  comments  Comment[]
+  id                String   @id @default(uuid())
+  fullName          String
+  email             String   @unique
+  password          String
+  birthDate         DateTime
+  registry          String?  @unique
+  position          String
+  department        String
+  role              Role     @default(USER)
+  totalVacationDays Int      @default(0)
+  totalTreDays      Int      @default(0)
+  status            Status   @default(ACTIVE)
+
+  vacation Vacation[]
+  tre      Tre[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("users")
 }
 
-model Post {
-  id         String    @id @default(uuid())
-  title      String
-  content    String
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @default(now()) @map("updated_at")
-  author     User      @relation(fields: [authorId], references: [id])
-  authorId   String
-  comments   Comment[]
-  category   Category? @relation(fields: [categoryId], references: [id])
-  categoryId String?
+model Vacation {
+  id                  String                 @id @default(uuid())
+  userId              String                 @map("user_id")
+  user                User                   @relation(fields: [userId], references: [id])
+  firstVacationDay    DateTime
+  lastVacationDay     DateTime
+  vacationSeiNumber   String?
+  requestType         VacationRequestType
+  year                Int
+  amoutOfVacationDays Int                    @default(0)
+  observations        String?
+  effectiveEnjoyment  EffectiveEnjoymentEnum @default(NO) @map("effective_enjoyment")
+  creteadAt           DateTime               @default(now()) @map("created_at")
+  updatedAt           DateTime               @updatedAt @map("updated_at")
+
+  @@map("vacations")
 }
 
-model Comment {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    String
+model Tre {
+  id                 String                 @id @default(uuid())
+  userId             String                 @map("user_Id")
+  user               User                   @relation(fields: [userId], references: [id])
+  firstTreDay        DateTime?
+  lastTreDay         DateTime?
+  treSeiNumber       String?
+  requestType        TreRequestType
+  yearOfAcquisition  Int
+  amoutOfTreDays     Int                    @default(0)
+  observations       String?
+  effectiveEnjoyment EffectiveEnjoymentEnum @map("effective_enjoyment")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  @@map("tre")
 }
 
-model Category {
-  id          String  @id @default(uuid())
-  name        String  @unique
-  description String?
-  posts       Post[]
+enum Role {
+  USER
+  ADMIN
+  GESTOR
+}
+
+enum VacationRequestType {
+  ALTERACAO_DE_GOZO
+  PROGRAMACAO_DE_FERIAS
+  SOLICITACAO_DE_GOZO
+  SUSPENSAO_DE_GOZO
+}
+
+enum TreRequestType {
+  INCLUIR_SALDO
+  SOLICITACAO_DE_GOZO
+  CANCELAMENTO_DE_GOZO
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum EffectiveEnjoymentEnum {
+  PARTIAL
+  YES
+  NO
 }
