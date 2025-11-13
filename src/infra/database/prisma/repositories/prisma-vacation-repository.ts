@@ -42,10 +42,17 @@ export class PrismaVacationRepository extends VacationRepository {
     return vacations.map(PrismaVacationMapper.toDomain);
   }
 
-  async findByUserId(userId: string): Promise<Vacation | null> {
-    const vacation = await this.prismaService.vacation.findUnique({
+  async findByUserId(
+    userId: string,
+    { page, size }
+  ): Promise<Vacation[] | null> {
+    // console.log(userId);
+    const vacation = await this.prismaService.vacation.findMany({
       where: {
-        id: userId,
+        userId,
+      },
+      include: {
+        user: true,
       },
     });
 
@@ -53,7 +60,9 @@ export class PrismaVacationRepository extends VacationRepository {
       return null;
     }
 
-    return PrismaVacationMapper.toDomain(vacation);
+    // console.log(vacation);
+
+    return vacation.map(PrismaVacationMapper.toDomain);
   }
 
   async findByYear(userId: string, year: number): Promise<Vacation[] | null> {

@@ -8,7 +8,10 @@ export abstract class VacationRepository {
     page,
     size,
   }: PaginationParams): Promise<Vacation[]>;
-  abstract findByUserId(userId: string): Promise<Vacation | null>;
+  abstract findByUserId(
+    userId: string,
+    { page, size }: PaginationParams
+  ): Promise<Vacation[] | null>;
   abstract findByYear(userId: string, year: number): Promise<Vacation[] | null>;
   abstract updateVacation(vacation: Vacation): Promise<void>;
   abstract deleteVacation(vacationId: string): Promise<void>;

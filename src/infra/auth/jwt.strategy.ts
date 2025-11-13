@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 const tokenBodySchema = z.object({
   sub: z.string().uuid(),
+  role: z.string(),
 })
 
 export type TokenBodySchema = z.infer<typeof tokenBodySchema>

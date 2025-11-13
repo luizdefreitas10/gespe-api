@@ -6,7 +6,7 @@ export class PrismaVacationMapper {
   static toDomain(raw: PrismaVacation): Vacation {
     return Vacation.create(
       {
-        userId: new UniqueEntityID(raw.id),
+        userId: new UniqueEntityID(raw.userId),
         firstVacationDay: raw.firstVacationDay,
         lastVacationDay: raw.lastVacationDay,
         vacationSeiNumber: raw.vacationSeiNumber,

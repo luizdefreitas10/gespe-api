@@ -1,16 +1,10 @@
-import { PrismaService } from "@/infra/database/prisma/prisma.service";
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
 import { z } from "zod";
 import { FetchUsersUseCase } from "@/domain/app/application/use-cases/fetch-users";
-import { JwtAuthGuard } from "@/infra/auth/jwt-auth.guard";
 import { UserPresenter } from "../../presenters/http-user-presenter";
 import { ZodValidationPipe } from "../../pipes/zod-validation-pipe";
+import { Roles } from "@/infra/auth/roles.decorator";
+import { Role } from "@prisma/client";
 
 const pageQueryParamSchema = z
   .string()
@@ -24,11 +18,11 @@ export type PageQueryParamSchema = z.infer<typeof pageQueryParamSchema>;
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamSchema);
 
 @Controller("/accounts")
-@UseGuards(JwtAuthGuard)
 export class FetchUsersController {
   constructor(private fetchUsersUseCase: FetchUsersUseCase) {}
 
   @Get()
+  @Roles([Role.ADMIN, Role.GESTOR])
   async getUsers(
     @Query("page", queryValidationPipe) page: PageQueryParamSchema
   ) {

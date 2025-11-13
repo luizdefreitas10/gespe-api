@@ -14,6 +14,7 @@ import { z } from "zod";
 import { ZodValidationPipe } from "@/infra/http/pipes/zod-validation-pipe";
 import { RegisterUserUseCase } from "@/domain/app/application/use-cases/register-user";
 import { UserAlreadyExistsError } from "@/domain/app/application/use-cases/errors/user-already-exists";
+import { Public } from "@/infra/auth/public";
 
 const UserRole = z.enum(["ADMIN", "GESTOR", "USER"]);
 
@@ -31,6 +32,7 @@ const createrAccountBodySchema = z.object({
 type CreateAccountBodySchema = z.infer<typeof createrAccountBodySchema>;
 
 @Controller("/accounts")
+@Public()
 export class CreateAccountController {
   constructor(private registerUserUseCase: RegisterUserUseCase) {}
 
