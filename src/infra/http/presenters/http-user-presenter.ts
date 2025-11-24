@@ -5,7 +5,7 @@ export class UserPresenter {
   static toHTTP(user: User) {
     return {
       id: user.id.toString(),
-      userName: user.userName,
+      fullName: user.userName,
       email: user.email,
     };
   }

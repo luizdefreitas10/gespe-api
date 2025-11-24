@@ -4,8 +4,7 @@ import {
   ConflictException,
   Controller,
   HttpCode,
-  Post,
-  UseGuards,
+  Post
 } from "@nestjs/common";
 
 import { z } from "zod";
@@ -15,7 +14,6 @@ import { RegisterVacationUseCase } from "@/domain/app/application/use-cases/regi
 import { CurrentUser } from "@/infra/auth/current-user-decorator";
 import { TokenBodySchema } from "@/infra/auth/jwt.strategy";
 import { UniqueEntityID } from "@/core/entities/unique-entity-id";
-import { JwtAuthGuard } from "@/infra/auth/jwt-auth.guard";
 import { Roles } from "@/infra/auth/roles.decorator";
 import { Role } from "@prisma/client";
 
@@ -44,7 +42,7 @@ export class CreateVacationController {
 
   @Post()
   @HttpCode(201)
-  @Roles([Role.ADMIN, Role.GESTOR])
+  @Roles([Role.ADMIN, Role.GESTOR, Role.USER])
   async createVacation(
     @Body(new ZodValidationPipe(createVacationBodySchema))
     body: CreateVacationBodySchema,

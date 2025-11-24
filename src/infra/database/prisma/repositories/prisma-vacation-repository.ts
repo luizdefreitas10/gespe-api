@@ -66,18 +66,18 @@ export class PrismaVacationRepository extends VacationRepository {
   }
 
   async findByYear(userId: string, year: number): Promise<Vacation[] | null> {
-    const vacation = await this.prismaService.vacation.findMany({
+    const vacations = await this.prismaService.vacation.findMany({
       where: {
         userId,
         year,
       },
     });
 
-    if (!vacation) {
+    if (!vacations) {
       return null;
     }
 
-    return vacation.map(PrismaVacationMapper.toDomain);
+    return vacations.map(PrismaVacationMapper.toDomain);
   }
 
   async updateVacation(vacation: Vacation): Promise<void> {

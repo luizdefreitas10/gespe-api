@@ -1,17 +1,11 @@
-import { PrismaService } from "@/infra/database/prisma/prisma.service";
 import {
   BadRequestException,
   Controller,
   Get,
   HttpCode,
-  Param,
   Query,
-  UseGuards,
 } from "@nestjs/common";
 import { z } from "zod";
-import { FetchUsersUseCase } from "@/domain/app/application/use-cases/fetch-users";
-import { JwtAuthGuard } from "@/infra/auth/jwt-auth.guard";
-import { UserPresenter } from "../../presenters/http-user-presenter";
 import { ZodValidationPipe } from "../../pipes/zod-validation-pipe";
 import { CurrentUser } from "@/infra/auth/current-user-decorator";
 import { TokenBodySchema } from "@/infra/auth/jwt.strategy";
@@ -40,11 +34,10 @@ export class FetchVacationByUserIdController {
   @Get("/by-user-id")
   @HttpCode(200)
   @Roles([Role.ADMIN, Role.GESTOR, Role.USER])
-  async getUsers(
+  async getVacationsByUserId(
     @CurrentUser() user: TokenBodySchema,
     @Query("page", queryValidationPipe) page: PageQueryParamSchema
   ) {
-
     const userId = user.sub;
     const result = await this.fetchVacationsByUserIdUseCase.execute({
       page,

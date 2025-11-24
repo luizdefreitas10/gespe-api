@@ -7,7 +7,7 @@ export abstract class VacationRepository {
   abstract getAllVacations({
     page,
     size,
-  }: PaginationParams): Promise<Vacation[]>;
+  }: PaginationParams): Promise<Vacation[] | null>;
   abstract findByUserId(
     userId: string,
     { page, size }: PaginationParams
