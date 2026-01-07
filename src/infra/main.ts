@@ -4,7 +4,6 @@ import { ConfigService } from "@nestjs/config";
 import { Env } from "./env";
 
 // main.ts
-import * as bodyParser from "body-parser";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -21,7 +20,7 @@ async function bootstrap() {
   //   next();
   // });
 
-  // CORS 
+  // CORS
   app.enableCors({
     origin: "http://localhost:3000", // front-end port
     credentials: true,

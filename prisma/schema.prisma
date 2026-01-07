@@ -29,6 +29,7 @@ model User {
 
   vacation Vacation[]
   tre      Tre[]
+  verificationTokens VerificationToken[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
@@ -71,6 +72,23 @@ model Tre {
 
   @@map("tre")
 }
+
+model VerificationToken {
+  id        String                @id @default(uuid())
+  user      User                  @relation(fields: [userId], references: [id])
+  userId    String
+  token     String                @unique
+  type      VerificationTokenType
+  createAt  DateTime
+  updatedAt DateTime?
+
+  @@map("verification_tokens")
+}
+
+enum VerificationTokenType {
+  RESET_PASSWORD
+}
+
 
 enum Role {
   USER

@@ -6,7 +6,7 @@ export class PrismaTreMapper {
   static toDomain(raw: PrismaTre): Tre {
     return Tre.create(
       {
-        userId: new UniqueEntityID(raw.id),
+        userId: new UniqueEntityID(raw.userId),
         firstTreDay: raw.firstTreDay,
         lastTreDay: raw.lastTreDay,
         treSeiNumber: raw.treSeiNumber,
@@ -24,15 +24,15 @@ export class PrismaTreMapper {
 
   static toPersistance(tre: Tre): Prisma.TreUncheckedCreateInput {
     return {
-      userId: tre.id.toString(),
-      firstTreDay: tre.firstTreDay,
-      lastTreDay: tre.lastTreDay,
+      userId: tre.userId.toString(),
+      firstTreDay: tre.firstTreDay ?? null,
+      lastTreDay: tre.lastTreDay ?? null,
       treSeiNumber: tre.treSeiNumber,
       requestType: tre.requestType,
       yearOfAcquisition: tre.yearOfAcquisition,
       amoutOfTreDays: tre.amoutOfTreDays,
       observations: tre.observations,
-      effectiveEnjoyment: tre.effectiveEnjoyment,
+      effectiveEnjoyment: tre.effectiveEnjoyment ?? "NO",
       createdAt: tre.createdAt,
       updatedAt: tre.updatedAt ?? undefined,
     };

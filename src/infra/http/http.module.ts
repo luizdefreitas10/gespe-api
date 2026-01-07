@@ -17,19 +17,46 @@ import { FetchVacationByIdUseCase } from "@/domain/app/application/use-cases/fet
 import { FetchVacationByYearAndUserIdController } from "./controllers/vacation/find-vacation-by-year-controller";
 import { FetchVacationByYearAndUserIdUseCase } from "@/domain/app/application/use-cases/fetch-vacation-by-year-and-user-id";
 import { HelloWorldController } from "./controllers/user/hello-controller";
+import { FetchUserByIdController } from "./controllers/user/fetch-user-by-id.controller";
+import { FetchUserByIdUseCase } from "@/domain/app/application/use-cases/fetch-user-by-id";
+import { GetVacationBalanceController } from "./controllers/vacation/get-vacation-balance-controller";
+import { GetVacationBalanceUseCase } from "@/domain/app/application/use-cases/get-vacation-balance";
+import { GetTreBalanceController } from "./controllers/tre/get-tre-balance-controller";
+import { GetTreBalanceUseCase } from "@/domain/app/application/use-cases/get-tre-balance";
+import { CreateTreController } from "./controllers/tre/create-tre-controller";
+import { RegisterTreUseCase } from "@/domain/app/application/use-cases/register-tre";
+import { FetchTreByIdController } from "./controllers/tre/fetch-tre-by-id-controller";
+import { FetchTreByIdUseCase } from "@/domain/app/application/use-cases/fetch-tre-by-id";
+import { FetchAllTresController } from "./controllers/tre/fetch-all-tres-controller";
+import { FetchAllTresUseCase } from "@/domain/app/application/use-cases/fetch-all-tres";
+import { FetchTresByUserIdController } from "./controllers/tre/fetch-tres-by-userId-controller";
+import { FetchTresByUserIdUseCase } from "@/domain/app/application/use-cases/fetch-tres-by-userId";
+import { UpdateTreController } from "./controllers/tre/update-tre-controller";
+import { UpdateTreUseCase } from "@/domain/app/application/use-cases/update-tre";
+import { DeleteTreController } from "./controllers/tre/delete-tre-controller";
+import { DeleteTreUseCase } from "@/domain/app/application/use-cases/delete-tre";
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
   controllers: [
     CreateAccountController,
     AuthenticateController,
+    FetchUserByIdController,
     FetchUsersController,
     CreateVacationController,
     FetchVacationByUserIdController,
     FetchAllVacationsController,
     FetchVacationByIdController,
     FetchVacationByYearAndUserIdController,
-    HelloWorldController
+    GetVacationBalanceController,
+    GetTreBalanceController,
+    CreateTreController,
+    FetchTreByIdController,
+    FetchAllTresController,
+    FetchTresByUserIdController,
+    UpdateTreController,
+    DeleteTreController,
+    HelloWorldController,
   ],
   providers: [
     RegisterUserUseCase,
@@ -39,6 +66,15 @@ import { HelloWorldController } from "./controllers/user/hello-controller";
     FetchAllVacationsUseCase,
     FetchVacationByIdUseCase,
     FetchVacationByYearAndUserIdUseCase,
+    FetchUserByIdUseCase,
+    GetVacationBalanceUseCase,
+    GetTreBalanceUseCase,
+    RegisterTreUseCase,
+    FetchTreByIdUseCase,
+    FetchAllTresUseCase,
+    FetchTresByUserIdUseCase,
+    UpdateTreUseCase,
+    DeleteTreUseCase,
   ],
 })
 export class HttpModule {}

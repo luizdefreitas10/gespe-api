@@ -25,6 +25,7 @@ const vacationRequestTypeEnum = z.enum([
 ]);
 
 const createVacationBodySchema = z.object({
+  userId: z.string().uuid().optional(),
   firstVacationDay: z.coerce.date(),
   lastVacationDay: z.coerce.date(),
   vacationSeiNumber: z.string().optional().nullable(),
@@ -42,13 +43,14 @@ export class CreateVacationController {
 
   @Post()
   @HttpCode(201)
-  @Roles([Role.ADMIN, Role.GESTOR, Role.USER])
+  @Roles([Role.ADMIN, Role.GESTOR])
   async createVacation(
     @Body(new ZodValidationPipe(createVacationBodySchema))
     body: CreateVacationBodySchema,
     @CurrentUser() user: TokenBodySchema
   ) {
     const {
+      userId,
       amoutOfVacationDays,
       firstVacationDay,
       lastVacationDay,
@@ -58,7 +60,7 @@ export class CreateVacationController {
       vacationSeiNumber,
     } = body;
 
-    // console.log(body);
+    const userIdToUse = userId || user.sub;
 
     const result = await this.registerVacationUseCase.execute({
       amoutOfVacationDays,
@@ -68,7 +70,7 @@ export class CreateVacationController {
       year,
       observations,
       vacationSeiNumber,
-      userId: new UniqueEntityID(user.sub),
+      userId: new UniqueEntityID(userIdToUse),
     });
 
     if (result.isLeft()) {

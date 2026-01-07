@@ -12,7 +12,7 @@ export interface TreProps {
   yearOfAcquisition: number;
   amoutOfTreDays: number;
   observations?: string | null;
-  effectiveEnjoyment: EffectiveEnjoymentEnum;
+  effectiveEnjoyment?: EffectiveEnjoymentEnum | undefined;
   createdAt: Date;
   updatedAt?: Date | null;
 }
@@ -26,31 +26,59 @@ export class Tre extends Entity<TreProps> {
     return this.props.firstTreDay;
   }
 
+  set firstTreDay(value: Date | null | undefined) {
+    this.props.firstTreDay = value;
+  }
+
   get lastTreDay(): Date | null | undefined {
     return this.props.lastTreDay;
+  }
+
+  set lastTreDay(value: Date | null | undefined) {
+    this.props.lastTreDay = value;
   }
 
   get treSeiNumber(): string | null | undefined {
     return this.props.treSeiNumber;
   }
 
+  set treSeiNumber(value: string | null | undefined) {
+    this.props.treSeiNumber = value;
+  }
+
   get requestType(): TreRequestType {
     return this.props.requestType;
+  }
+
+  set requestType(value: TreRequestType) {
+    this.props.requestType = value;
   }
 
   get yearOfAcquisition(): number {
     return this.props.yearOfAcquisition;
   }
 
+  set yearOfAcquisition(value: number) {
+    this.props.yearOfAcquisition = value;
+  }
+
   get amoutOfTreDays(): number {
     return this.props.amoutOfTreDays;
+  }
+
+  set amoutOfTreDays(value: number) {
+    this.props.amoutOfTreDays = value;
   }
 
   get observations(): string | null | undefined {
     return this.props.observations;
   }
 
-  get effectiveEnjoyment(): EffectiveEnjoymentEnum {
+  set observations(value: string | null | undefined) {
+    this.props.observations = value;
+  }
+
+  get effectiveEnjoyment(): EffectiveEnjoymentEnum | undefined {
     return this.props.effectiveEnjoyment;
   }
 
@@ -64,6 +92,10 @@ export class Tre extends Entity<TreProps> {
 
   get updatedAt(): Date | null | undefined {
     return this.props.updatedAt;
+  }
+
+  set updatedAt(value: Date | null | undefined) {
+    this.props.updatedAt = value;
   }
 
   static create(

@@ -13,6 +13,7 @@ export class PrismaTreRepository extends TreRepository {
 
   async createTre(tre: Tre): Promise<void> {
     const data = PrismaTreMapper.toPersistance(tre);
+
     await this.prismaService.tre.create({
       data,
     });
@@ -33,44 +34,52 @@ export class PrismaTreRepository extends TreRepository {
   }
 
   async getAllTres({ page, size }: PaginationParams): Promise<Tre[]> {
-    const tre = await this.prismaService.tre.findMany({
+    const tres = await this.prismaService.tre.findMany({
       take: size || 20,
       skip: (page - 1) * 20,
     });
 
-    return tre.map(PrismaTreMapper.toDomain);
+    return tres.map(PrismaTreMapper.toDomain);
   }
 
-  async findByUserId(userId: string): Promise<Tre[] | null> {
-    const tre = await this.prismaService.tre.findMany({
+  async findByUserId(
+    userId: string,
+    pagination?: PaginationParams
+  ): Promise<Tre[] | null> {
+    const tres = await this.prismaService.tre.findMany({
       where: {
-        userId: userId,
+        userId,
       },
+      include: {
+        user: true,
+      },
+      take: pagination?.size || 20,
+      skip: pagination ? (pagination.page - 1) * (pagination.size || 20) : 0,
     });
 
-    if (!tre) {
+    if (!tres) {
       return null;
     }
 
-    return tre.map(PrismaTreMapper.toDomain);
+    return tres.map(PrismaTreMapper.toDomain);
   }
 
   async findByYearOfAcquisition(
     userId: string,
-    year: number
+    yearOfAcquisition: number
   ): Promise<Tre[] | null> {
-    const tre = await this.prismaService.tre.findMany({
+    const tres = await this.prismaService.tre.findMany({
       where: {
         userId,
-        yearOfAcquisition: year,
+        yearOfAcquisition,
       },
     });
 
-    if (!tre) {
+    if (!tres) {
       return null;
     }
 
-    return tre.map(PrismaTreMapper.toDomain);
+    return tres.map(PrismaTreMapper.toDomain);
   }
 
   async updateTre(tre: Tre): Promise<void> {
@@ -78,12 +87,17 @@ export class PrismaTreRepository extends TreRepository {
 
     await this.prismaService.tre.update({
       where: {
-        id: tre.id.toString(),
+        id: prismaTre.id,
       },
       data: prismaTre,
     });
   }
-  deleteTre(treId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async deleteTre(treId: string): Promise<void> {
+    await this.prismaService.tre.delete({
+      where: {
+        id: treId,
+      },
+    });
   }
 }
