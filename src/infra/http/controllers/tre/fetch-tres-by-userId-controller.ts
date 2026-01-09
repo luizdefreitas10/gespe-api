@@ -4,55 +4,52 @@ import {
   Get,
   HttpCode,
   Query,
-} from "@nestjs/common";
-import { z } from "zod";
-import { ZodValidationPipe } from "../../pipes/zod-validation-pipe";
-import { CurrentUser } from "@/infra/auth/current-user-decorator";
-import { TokenBodySchema } from "@/infra/auth/jwt.strategy";
-import { FetchTresByUserIdUseCase } from "@/domain/app/application/use-cases/fetch-tres-by-userId";
-import { TrePresenter } from "../../presenters/http-tre-presenter";
-import { Roles } from "@/infra/auth/roles.decorator";
-import { Role } from "@prisma/client";
+} from '@nestjs/common'
+import { z } from 'zod'
+import { ZodValidationPipe } from '../../pipes/zod-validation-pipe'
+import { CurrentUser } from '@/infra/auth/current-user-decorator'
+import { TokenBodySchema } from '@/infra/auth/jwt.strategy'
+import { FetchTresByUserIdUseCase } from '@/domain/app/application/use-cases/fetch-tres-by-userId'
+import { TrePresenter } from '../../presenters/http-tre-presenter'
+import { Roles } from '@/infra/auth/roles.decorator'
+import { Role } from '@prisma/client'
 
 const pageQueryParamSchema = z
   .string()
   .optional()
-  .default("1")
+  .default('1')
   .transform(Number)
-  .pipe(z.number().min(1));
+  .pipe(z.number().min(1))
 
-export type PageQueryParamSchema = z.infer<typeof pageQueryParamSchema>;
+export type PageQueryParamSchema = z.infer<typeof pageQueryParamSchema>
 
-const queryValidationPipe = new ZodValidationPipe(pageQueryParamSchema);
+const queryValidationPipe = new ZodValidationPipe(pageQueryParamSchema)
 
-@Controller("/tre")
+@Controller('/tre')
 export class FetchTresByUserIdController {
-  constructor(
-    private fetchTresByUserIdUseCase: FetchTresByUserIdUseCase
-  ) {}
+  constructor(private fetchTresByUserIdUseCase: FetchTresByUserIdUseCase) {}
 
-  @Get("/by-user-id")
+  @Get('/by-user-id')
   @HttpCode(200)
   @Roles([Role.ADMIN, Role.GESTOR, Role.USER])
   async getTresByUserId(
     @CurrentUser() user: TokenBodySchema,
-    @Query("page", queryValidationPipe) page: PageQueryParamSchema
+    @Query('page', queryValidationPipe) page: PageQueryParamSchema,
   ) {
-    const userId = user.sub;
+    const userId = user.sub
     const result = await this.fetchTresByUserIdUseCase.execute({
       page,
       userId,
-    });
+    })
 
     if (result.isLeft()) {
-      throw new BadRequestException();
+      throw new BadRequestException()
     }
 
-    const tres = result.value.tres;
+    const tres = result.value.tres
 
     return {
       tres: tres.map(TrePresenter.toHTTP) ?? [],
-    };
+    }
   }
 }
-

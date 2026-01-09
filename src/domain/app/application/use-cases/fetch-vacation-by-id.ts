@@ -1,19 +1,19 @@
-import { Either, left, right } from "@/core/either";
-import { Injectable } from "@nestjs/common";
-import { VacationNotFoundError } from "./errors/vacation-not-found";
-import { Vacation } from "../../enterprise/entities/vacation";
-import { VacationRepository } from "../repositories/vacation-repository";
+import { Either, left, right } from '@/core/either'
+import { Injectable } from '@nestjs/common'
+import { VacationNotFoundError } from './errors/vacation-not-found'
+import { Vacation } from '../../enterprise/entities/vacation'
+import { VacationRepository } from '../repositories/vacation-repository'
 
 interface FetchVacationByIdUseCaseRequest {
-  id: string;
+  id: string
 }
 
 type FetchVacationByIdUseCaseResponse = Either<
   VacationNotFoundError,
   {
-    vacation: Vacation;
+    vacation: Vacation
   }
->;
+>
 
 @Injectable()
 export class FetchVacationByIdUseCase {
@@ -22,14 +22,14 @@ export class FetchVacationByIdUseCase {
   async execute({
     id,
   }: FetchVacationByIdUseCaseRequest): Promise<FetchVacationByIdUseCaseResponse> {
-    const vacation = await this.vacationRepository.findById(id);
+    const vacation = await this.vacationRepository.findById(id)
 
     if (!vacation) {
-      return left(new VacationNotFoundError("id"));
+      return left(new VacationNotFoundError('id'))
     }
 
     return right({
       vacation,
-    });
+    })
   }
 }

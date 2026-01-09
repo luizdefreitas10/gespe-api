@@ -1,4 +1,4 @@
-import { User } from "@/domain/app/enterprise/entities/user";
+import { User } from '@/domain/app/enterprise/entities/user'
 
 export class UserByIdPresenter {
   // ou static present()
@@ -18,6 +18,6 @@ export class UserByIdPresenter {
       tre: user.tre,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    };
+    }
   }
 }

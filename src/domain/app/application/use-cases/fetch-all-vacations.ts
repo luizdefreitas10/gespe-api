@@ -1,19 +1,19 @@
-import { Either, left, right } from "@/core/either";
-import { Injectable } from "@nestjs/common";
-import { Vacation } from "@/domain/app/enterprise/entities/vacation";
-import { VacationRepository } from "@/domain/app/application/repositories/vacation-repository";
+import { Either, left, right } from '@/core/either'
+import { Injectable } from '@nestjs/common'
+import { Vacation } from '@/domain/app/enterprise/entities/vacation'
+import { VacationRepository } from '@/domain/app/application/repositories/vacation-repository'
 
 interface FetchAllVacationsUseCaseRequest {
-  page: number;
+  page: number
 }
 
 type FetchAllVacationsUseCaseResponse = Either<
   null,
   {
-    vacations: Vacation[];
-    count: number;
+    vacations: Vacation[]
+    count: number
   }
->;
+>
 
 @Injectable()
 export class FetchAllVacationsUseCase {
@@ -24,17 +24,17 @@ export class FetchAllVacationsUseCase {
   }: FetchAllVacationsUseCaseRequest): Promise<FetchAllVacationsUseCaseResponse> {
     const vacations = await this.vacationRepository.getAllVacations({
       page,
-    });
+    })
 
     if (!vacations) {
-      return left(null);
+      return left(null)
     }
 
-    const count = vacations.length;
+    const count = vacations.length
 
     return right({
       count,
       vacations,
-    });
+    })
   }
 }

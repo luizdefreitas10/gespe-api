@@ -1,16 +1,16 @@
-import { UniqueEntityID } from "@/core/entities/unique-entity-id";
-import { User } from "@/domain/app/enterprise/entities/user";
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { User } from '@/domain/app/enterprise/entities/user'
 import {
   Prisma,
   User as PrismaUser,
   Tre as PrismaTre,
   Vacation as PrismaVacation,
-} from "@prisma/client";
+} from '@prisma/client'
 
 type UserProps = PrismaUser & {
-  vacation: PrismaVacation[] | [];
-  tre: PrismaTre[] | [];
-};
+  vacation: PrismaVacation[] | []
+  tre: PrismaTre[] | []
+}
 
 export class PrismaUserMapper {
   static toDomain(rawUser: UserProps): User {
@@ -31,8 +31,8 @@ export class PrismaUserMapper {
         createdAt: rawUser.createdAt,
         updatedAt: rawUser.updatedAt,
       },
-      new UniqueEntityID(rawUser.id)
-    );
+      new UniqueEntityID(rawUser.id),
+    )
   }
 
   static toPersistance(user: User): Prisma.UserUncheckedCreateInput {
@@ -50,6 +50,6 @@ export class PrismaUserMapper {
       totalTreDays: user.totalTreDays,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt ?? undefined,
-    };
+    }
   }
 }

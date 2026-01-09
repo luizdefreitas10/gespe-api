@@ -1,19 +1,19 @@
-import { Either, left, right } from "@/core/either";
-import { Injectable } from "@nestjs/common";
-import { Tre } from "@/domain/app/enterprise/entities/tre";
-import { TreRepository } from "@/domain/app/application/repositories/tre-repository";
+import { Either, left, right } from '@/core/either'
+import { Injectable } from '@nestjs/common'
+import { Tre } from '@/domain/app/enterprise/entities/tre'
+import { TreRepository } from '@/domain/app/application/repositories/tre-repository'
 
 interface FetchAllTresUseCaseRequest {
-  page: number;
+  page: number
 }
 
 type FetchAllTresUseCaseResponse = Either<
   null,
   {
-    tres: Tre[];
-    count: number;
+    tres: Tre[]
+    count: number
   }
->;
+>
 
 @Injectable()
 export class FetchAllTresUseCase {
@@ -24,18 +24,17 @@ export class FetchAllTresUseCase {
   }: FetchAllTresUseCaseRequest): Promise<FetchAllTresUseCaseResponse> {
     const tres = await this.treRepository.getAllTres({
       page,
-    });
+    })
 
     if (!tres) {
-      return left(null);
+      return left(null)
     }
 
-    const count = tres.length;
+    const count = tres.length
 
     return right({
       count,
       tres,
-    });
+    })
   }
 }
-

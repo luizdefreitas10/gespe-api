@@ -3,7 +3,6 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { Optional } from '@/core/types/optional'
 import { VerificationTokenType } from '@prisma/client'
 
-
 export interface VerificationTokenProps {
   createAt: Date
   updatedAt?: Date | null

@@ -4,25 +4,25 @@ import {
   ConflictException,
   Controller,
   HttpCode,
-  Post
-} from "@nestjs/common";
+  Post,
+} from '@nestjs/common'
 
-import { z } from "zod";
-import { ZodValidationPipe } from "@/infra/http/pipes/zod-validation-pipe";
-import { VacationAlreadyExistsError } from "@/domain/app/application/use-cases/errors/vacation-already-exists";
-import { RegisterVacationUseCase } from "@/domain/app/application/use-cases/register-vacation";
-import { CurrentUser } from "@/infra/auth/current-user-decorator";
-import { TokenBodySchema } from "@/infra/auth/jwt.strategy";
-import { UniqueEntityID } from "@/core/entities/unique-entity-id";
-import { Roles } from "@/infra/auth/roles.decorator";
-import { Role } from "@prisma/client";
+import { z } from 'zod'
+import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
+import { VacationAlreadyExistsError } from '@/domain/app/application/use-cases/errors/vacation-already-exists'
+import { RegisterVacationUseCase } from '@/domain/app/application/use-cases/register-vacation'
+import { CurrentUser } from '@/infra/auth/current-user-decorator'
+import { TokenBodySchema } from '@/infra/auth/jwt.strategy'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { Roles } from '@/infra/auth/roles.decorator'
+import { Role } from '@prisma/client'
 
 const vacationRequestTypeEnum = z.enum([
-  "ALTERACAO_DE_GOZO",
-  "PROGRAMACAO_DE_FERIAS",
-  "SOLICITACAO_DE_GOZO",
-  "SUSPENSAO_DE_GOZO",
-]);
+  'ALTERACAO_DE_GOZO',
+  'PROGRAMACAO_DE_FERIAS',
+  'SOLICITACAO_DE_GOZO',
+  'SUSPENSAO_DE_GOZO',
+])
 
 const createVacationBodySchema = z.object({
   userId: z.string().uuid().optional(),
@@ -33,11 +33,11 @@ const createVacationBodySchema = z.object({
   year: z.number(),
   amoutOfVacationDays: z.number(),
   observations: z.string().optional().nullable(),
-});
+})
 
-type CreateVacationBodySchema = z.infer<typeof createVacationBodySchema>;
+type CreateVacationBodySchema = z.infer<typeof createVacationBodySchema>
 
-@Controller("/vacation")
+@Controller('/vacation')
 export class CreateVacationController {
   constructor(private registerVacationUseCase: RegisterVacationUseCase) {}
 
@@ -47,7 +47,7 @@ export class CreateVacationController {
   async createVacation(
     @Body(new ZodValidationPipe(createVacationBodySchema))
     body: CreateVacationBodySchema,
-    @CurrentUser() user: TokenBodySchema
+    @CurrentUser() user: TokenBodySchema,
   ) {
     const {
       userId,
@@ -58,9 +58,9 @@ export class CreateVacationController {
       year,
       observations,
       vacationSeiNumber,
-    } = body;
+    } = body
 
-    const userIdToUse = userId || user.sub;
+    const userIdToUse = userId || user.sub
 
     const result = await this.registerVacationUseCase.execute({
       amoutOfVacationDays,
@@ -71,16 +71,16 @@ export class CreateVacationController {
       observations,
       vacationSeiNumber,
       userId: new UniqueEntityID(userIdToUse),
-    });
+    })
 
     if (result.isLeft()) {
-      const error = result.value;
+      const error = result.value
 
       switch (error.constructor) {
         case VacationAlreadyExistsError:
-          throw new ConflictException(error.message);
+          throw new ConflictException(error.message)
         default:
-          throw new BadRequestException(error.message);
+          throw new BadRequestException(error.message)
       }
     }
   }
