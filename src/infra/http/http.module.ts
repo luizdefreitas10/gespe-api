@@ -35,9 +35,13 @@ import { UpdateTreController } from './controllers/tre/update-tre-controller'
 import { UpdateTreUseCase } from '@/domain/app/application/use-cases/update-tre'
 import { DeleteTreController } from './controllers/tre/delete-tre-controller'
 import { DeleteTreUseCase } from '@/domain/app/application/use-cases/delete-tre'
-import { ImportDataController } from "./controllers/import-data";
+import { ImportDataController } from "./controllers/import-data/import-data.controller";
 import { ImportVacationSpreadsheetUseCase } from '@/domain/app/application/use-cases/import-vacation-spreadsheet'
-
+import { UserRegistrationService } from '@/domain/app/services/user/user-registration.service'
+import { VacationRegistrationService } from '@/domain/app/services/vacation/vacation-registration.service'
+import { ExcelReaderService } from '@/domain/app/application/parsers/excel-reader.service'
+import { UserSheetMatcherService } from '@/domain/app/application/parsers/user-sheet-matcher.service'
+import { VacationSheetParserService } from '@/domain/app/application/parsers/vacation-sheet-parser.service'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -80,6 +84,11 @@ import { ImportVacationSpreadsheetUseCase } from '@/domain/app/application/use-c
     UpdateTreUseCase,
     DeleteTreUseCase,
     ImportVacationSpreadsheetUseCase,
+    ExcelReaderService,
+    UserSheetMatcherService,
+    VacationSheetParserService,
+    UserRegistrationService,
+    VacationRegistrationService,
   ],
 })
 export class HttpModule {}
