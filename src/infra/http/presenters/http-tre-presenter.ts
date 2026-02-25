@@ -1,4 +1,4 @@
-import { Tre } from "@/domain/app/enterprise/entities/tre";
+import { Tre } from '@/domain/app/enterprise/entities/tre'
 
 export class TrePresenter {
   static toHTTP(tre: Tre) {
@@ -15,7 +15,6 @@ export class TrePresenter {
       effectiveEnjoyment: tre.effectiveEnjoyment,
       createdAt: tre.createdAt,
       updatedAt: tre.updatedAt,
-    };
+    }
   }
 }
-

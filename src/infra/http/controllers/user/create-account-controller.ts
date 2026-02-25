@@ -8,30 +8,30 @@ import {
   UsePipes,
   Query,
   BadRequestException,
-} from "@nestjs/common";
+} from '@nestjs/common'
 
-import { z } from "zod";
-import { ZodValidationPipe } from "@/infra/http/pipes/zod-validation-pipe";
-import { RegisterUserUseCase } from "@/domain/app/application/use-cases/register-user";
-import { UserAlreadyExistsError } from "@/domain/app/application/use-cases/errors/user-already-exists";
-import { Public } from "@/infra/auth/public";
+import { z } from 'zod'
+import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
+import { RegisterUserUseCase } from '@/domain/app/application/use-cases/register-user'
+import { UserAlreadyExistsError } from '@/domain/app/application/use-cases/errors/user-already-exists'
+import { Public } from '@/infra/auth/public'
 
-const UserRole = z.enum(["ADMIN", "GESTOR", "USER"]);
+const UserRole = z.enum(['ADMIN', 'GESTOR', 'USER'])
 
 const createrAccountBodySchema = z.object({
   fullName: z.string(),
   email: z.string().email(),
   password: z.string(),
-  birthDate: z.coerce.date(),
+  birthDate: z.coerce.date().optional(),
   registry: z.string().optional(),
-  position: z.string(),
-  department: z.string(),
+  position: z.string().optional(),
+  department: z.string().optional(),
   role: UserRole.optional(),
-});
+})
 
-type CreateAccountBodySchema = z.infer<typeof createrAccountBodySchema>;
+type CreateAccountBodySchema = z.infer<typeof createrAccountBodySchema>
 
-@Controller("/accounts")
+@Controller('/accounts')
 @Public()
 export class CreateAccountController {
   constructor(private registerUserUseCase: RegisterUserUseCase) {}
@@ -49,7 +49,7 @@ export class CreateAccountController {
       position,
       registry,
       role,
-    } = body;
+    } = body
 
     const result = await this.registerUserUseCase.execute({
       email,
@@ -59,17 +59,17 @@ export class CreateAccountController {
       department,
       position,
       registry,
-      role: role ?? "USER",
-    });
+      role: role ?? 'USER',
+    })
 
     if (result.isLeft()) {
-      const error = result.value;
+      const error = result.value
 
       switch (error.constructor) {
         case UserAlreadyExistsError:
-          throw new ConflictException(error.message);
+          throw new ConflictException(error.message)
         default:
-          throw new BadRequestException(error.message);
+          throw new BadRequestException(error.message)
       }
     }
   }

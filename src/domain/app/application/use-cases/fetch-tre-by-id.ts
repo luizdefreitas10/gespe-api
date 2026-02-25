@@ -1,19 +1,19 @@
-import { Either, left, right } from "@/core/either";
-import { Injectable } from "@nestjs/common";
-import { TreNotFoundError } from "./errors/tre-not-found";
-import { Tre } from "../../enterprise/entities/tre";
-import { TreRepository } from "../repositories/tre-repository";
+import { Either, left, right } from '@/core/either'
+import { Injectable } from '@nestjs/common'
+import { TreNotFoundError } from './errors/tre-not-found'
+import { Tre } from '../../enterprise/entities/tre'
+import { TreRepository } from '../repositories/tre-repository'
 
 interface FetchTreByIdUseCaseRequest {
-  id: string;
+  id: string
 }
 
 type FetchTreByIdUseCaseResponse = Either<
   TreNotFoundError,
   {
-    tre: Tre;
+    tre: Tre
   }
->;
+>
 
 @Injectable()
 export class FetchTreByIdUseCase {
@@ -22,15 +22,14 @@ export class FetchTreByIdUseCase {
   async execute({
     id,
   }: FetchTreByIdUseCaseRequest): Promise<FetchTreByIdUseCaseResponse> {
-    const tre = await this.treRepository.findById(id);
+    const tre = await this.treRepository.findById(id)
 
     if (!tre) {
-      return left(new TreNotFoundError("id"));
+      return left(new TreNotFoundError('id'))
     }
 
     return right({
       tre,
-    });
+    })
   }
 }
-

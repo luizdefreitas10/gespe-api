@@ -5,11 +5,11 @@ services:
     container_name: nest_clean_personal_api
     image: postgres
     ports:
-      - 5432:5432
+      - 5433:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: nest-clean-personal_api
+      POSTGRES_DB: nest_clean_personal_api
       PGDATA: /data/postgres
     volumes:
       - ./data/pg:/data/postgres

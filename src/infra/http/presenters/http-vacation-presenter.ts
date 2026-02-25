@@ -1,4 +1,4 @@
-import { Vacation } from "@/domain/app/enterprise/entities/vacation";
+import { Vacation } from '@/domain/app/enterprise/entities/vacation'
 
 export class VacationPresenter {
   // ou static present()
@@ -16,6 +16,6 @@ export class VacationPresenter {
       effectiveEnjoyment: vacation.effectiveEnjoyment,
       createdAt: vacation.createdAt,
       updatedAt: vacation.updatedAt,
-    };
+    }
   }
 }

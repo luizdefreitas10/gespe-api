@@ -4,22 +4,22 @@ import {
   Controller,
   HttpCode,
   Post,
-} from "@nestjs/common";
+} from '@nestjs/common'
 
-import { z } from "zod";
-import { ZodValidationPipe } from "@/infra/http/pipes/zod-validation-pipe";
-import { RegisterTreUseCase } from "@/domain/app/application/use-cases/register-tre";
-import { CurrentUser } from "@/infra/auth/current-user-decorator";
-import { TokenBodySchema } from "@/infra/auth/jwt.strategy";
-import { UniqueEntityID } from "@/core/entities/unique-entity-id";
-import { Roles } from "@/infra/auth/roles.decorator";
-import { Role } from "@prisma/client";
+import { z } from 'zod'
+import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
+import { RegisterTreUseCase } from '@/domain/app/application/use-cases/register-tre'
+import { CurrentUser } from '@/infra/auth/current-user-decorator'
+import { TokenBodySchema } from '@/infra/auth/jwt.strategy'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { Roles } from '@/infra/auth/roles.decorator'
+import { Role } from '@prisma/client'
 
 const treRequestTypeEnum = z.enum([
-  "INCLUIR_SALDO",
-  "SOLICITACAO_DE_GOZO",
-  "CANCELAMENTO_DE_GOZO",
-]);
+  'INCLUIR_SALDO',
+  'SOLICITACAO_DE_GOZO',
+  'CANCELAMENTO_DE_GOZO',
+])
 
 const createTreBodySchema = z.object({
   userId: z.string().uuid().optional(),
@@ -30,11 +30,11 @@ const createTreBodySchema = z.object({
   yearOfAcquisition: z.number(),
   amoutOfTreDays: z.number(),
   observations: z.string().optional().nullable(),
-});
+})
 
-type CreateTreBodySchema = z.infer<typeof createTreBodySchema>;
+type CreateTreBodySchema = z.infer<typeof createTreBodySchema>
 
-@Controller("/tre")
+@Controller('/tre')
 export class CreateTreController {
   constructor(private registerTreUseCase: RegisterTreUseCase) {}
 
@@ -44,7 +44,7 @@ export class CreateTreController {
   async createTre(
     @Body(new ZodValidationPipe(createTreBodySchema))
     body: CreateTreBodySchema,
-    @CurrentUser() user: TokenBodySchema
+    @CurrentUser() user: TokenBodySchema,
   ) {
     const {
       userId,
@@ -55,9 +55,9 @@ export class CreateTreController {
       yearOfAcquisition,
       observations,
       treSeiNumber,
-    } = body;
+    } = body
 
-    const userIdToUse = userId || user.sub;
+    const userIdToUse = userId || user.sub
 
     const result = await this.registerTreUseCase.execute({
       amoutOfTreDays,
@@ -68,14 +68,14 @@ export class CreateTreController {
       observations,
       treSeiNumber,
       userId: new UniqueEntityID(userIdToUse),
-    });
+    })
 
     if (result.isLeft()) {
-      throw new BadRequestException("Error creating TRE");
+      throw new BadRequestException('Error creating TRE')
     }
 
-    const tre = result.value.tre;
+    const tre = result.value.tre
 
-    return { tre };
+    return { tre }
   }
 }
