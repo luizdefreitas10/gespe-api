@@ -6,5 +6,6 @@ export abstract class UserRepository {
   abstract findById(userId: string): Promise<User | null>
   abstract getAllUsers({ page, size }: PaginationParams): Promise<User[]>
   abstract findByEmail(email: string): Promise<User | null>
+  abstract findByFullName(fullName: string): Promise<User | null>
   abstract delete(user: User): Promise<void>
 }

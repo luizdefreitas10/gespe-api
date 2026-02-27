@@ -70,6 +70,52 @@ export class PrismaUserRepository extends UserRepository {
     return PrismaUserMapper.toDomain(user)
   }
 
+  async findByFullName(fullName: string): Promise<User | null> {
+    const exact = await this.prismaService.user.findFirst({
+      where: { fullName },
+      include: { vacation: true, tre: true },
+    })
+
+    if (exact) return PrismaUserMapper.toDomain(exact)
+
+    const startsWith = await this.prismaService.user.findFirst({
+      where: {
+        fullName: {
+          startsWith: fullName,
+          mode: 'insensitive',
+        },
+      },
+      include: { vacation: true, tre: true },
+    })
+
+    if (startsWith) {
+      console.warn(`   ⚠️ Nome aproximado: "${fullName}" → "${startsWith.fullName}"`)
+      return PrismaUserMapper.toDomain(startsWith)
+    }
+
+    const words = fullName.trim().split(/\s+/)
+    for (let i = words.length - 1; i >= 2; i--) {
+      const partial = words.slice(0, i).join(' ')
+      const partialMatch = await this.prismaService.user.findFirst({
+        where: {
+          fullName: {
+            equals: partial,
+            mode: 'insensitive',
+          },
+        },
+        include: { vacation: true, tre: true },
+      })
+
+      if (partialMatch) {
+        console.warn(`   ⚠️ Nome parcial: "${fullName}" → "${partialMatch.fullName}"`)
+        return PrismaUserMapper.toDomain(partialMatch)
+      }
+    }
+
+    return null
+  }
+
+
   async delete(user: User): Promise<void> {
     await this.prismaService.user.update({
       where: {

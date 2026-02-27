@@ -37,8 +37,10 @@ import { DeleteTreController } from './controllers/tre/delete-tre-controller'
 import { DeleteTreUseCase } from '@/domain/app/application/use-cases/delete-tre'
 import { ImportDataController } from "./controllers/import-data/import-data.controller";
 import { ImportVacationSpreadsheetUseCase } from '@/domain/app/application/use-cases/import-vacation-spreadsheet'
+import { ImportTreSpreadsheetUseCase } from '@/domain/app/application/use-cases/import-tre-spreadsheet'
 import { UserRegistrationService } from '@/domain/app/services/user/user-registration.service'
 import { VacationRegistrationService } from '@/domain/app/services/vacation/vacation-registration.service'
+import { TreSheetParserService } from '@/domain/app/application/parsers/tre-sheet-parser.service'
 import { ExcelReaderService } from '@/domain/app/application/parsers/excel-reader.service'
 import { UserSheetMatcherService } from '@/domain/app/application/parsers/user-sheet-matcher.service'
 import { VacationSheetParserService } from '@/domain/app/application/parsers/vacation-sheet-parser.service'
@@ -78,6 +80,8 @@ import { VacationSheetParserService } from '@/domain/app/application/parsers/vac
     GetVacationBalanceUseCase,
     GetTreBalanceUseCase,
     RegisterTreUseCase,
+    TreSheetParserService,
+    ImportTreSpreadsheetUseCase,
     FetchTreByIdUseCase,
     FetchAllTresUseCase,
     FetchTresByUserIdUseCase,

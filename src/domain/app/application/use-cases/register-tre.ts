@@ -1,6 +1,6 @@
 import { Either, right } from '@/core/either'
 import { Injectable } from '@nestjs/common'
-import { TreRequestType } from '@prisma/client'
+import { TreRequestType, EffectiveEnjoymentEnum } from '@prisma/client'
 import { Tre } from '../../enterprise/entities/tre'
 import { TreRepository } from '../repositories/tre-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
@@ -14,6 +14,7 @@ interface RegisterTreUseCaseRequest {
   yearOfAcquisition: number
   amoutOfTreDays: number
   observations?: string | null
+  effectiveEnjoyment?: EffectiveEnjoymentEnum
 }
 
 type RegisterTreUseCaseResponse = Either<
@@ -36,6 +37,7 @@ export class RegisterTreUseCase {
     yearOfAcquisition,
     amoutOfTreDays,
     observations,
+    effectiveEnjoyment,
   }: RegisterTreUseCaseRequest): Promise<RegisterTreUseCaseResponse> {
     const tre = Tre.create({
       userId,
@@ -46,12 +48,11 @@ export class RegisterTreUseCase {
       yearOfAcquisition,
       amoutOfTreDays,
       observations,
+      effectiveEnjoyment: effectiveEnjoyment ?? EffectiveEnjoymentEnum.NO,
     })
 
     await this.treRepository.createTre(tre)
 
-    return right({
-      tre,
-    })
+    return right({ tre })
   }
 }
