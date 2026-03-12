@@ -1,7 +1,10 @@
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { PrismaService } from '../prisma.service'
 import { Injectable } from '@nestjs/common'
-import { TreRepository } from '@/domain/app/application/repositories/tre-repository'
+import {
+  TreRepository,
+  FindDuplicateTreParams,
+} from '@/domain/app/application/repositories/tre-repository'
 import { Tre } from '@/domain/app/enterprise/entities/tre'
 import { PrismaTreMapper } from '../mappers/prisma-tre-mapper'
 
@@ -80,6 +83,26 @@ export class PrismaTreRepository extends TreRepository {
     }
 
     return tres.map(PrismaTreMapper.toDomain)
+  }
+
+  async findDuplicateTre(params: FindDuplicateTreParams): Promise<Tre | null> {
+    const tre = await this.prismaService.tre.findFirst({
+      where: {
+        userId: params.userId,
+        firstTreDay: params.firstTreDay,
+        lastTreDay: params.lastTreDay,
+        requestType: params.requestType,
+        yearOfAcquisition: params.yearOfAcquisition,
+        amoutOfTreDays: params.amoutOfTreDays,
+        treSeiNumber: params.treSeiNumber ?? null,
+      },
+    })
+
+    if (!tre) {
+      return null
+    }
+
+    return PrismaTreMapper.toDomain(tre)
   }
 
   async updateTre(tre: Tre): Promise<void> {

@@ -4,8 +4,7 @@ import { VacationAlreadyExistsError } from './errors/vacation-already-exists'
 import { Vacation } from '../../enterprise/entities/vacation'
 import { VacationRepository } from '../repositories/vacation-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
-import { EffectiveEnjoymentEnum, VacationRequestType } from '@prisma/client';
-
+import { EffectiveEnjoymentEnum, VacationRequestType } from '@prisma/client'
 
 interface RegisterVacationUseCaseRequest {
   userId: UniqueEntityID
@@ -16,7 +15,7 @@ interface RegisterVacationUseCaseRequest {
   year: number
   amoutOfVacationDays: number
   observations?: string | null
-  effectiveEnjoyment?: EffectiveEnjoymentEnum;
+  effectiveEnjoyment?: EffectiveEnjoymentEnum
 }
 
 type RegisterVacationUseCaseResponse = Either<

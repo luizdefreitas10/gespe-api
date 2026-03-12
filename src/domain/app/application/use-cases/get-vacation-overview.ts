@@ -1,123 +1,109 @@
 import { Either, right } from '@/core/either'
 import { Injectable } from '@nestjs/common'
 import { VacationRepository } from '../repositories/vacation-repository'
+import { Vacation } from '../../enterprise/entities/vacation'
 import { VacationRequestType } from '@prisma/client'
 
-interface GetVacationBalanceUseCaseRequest {
-  userId: string
-  year?: number
+export interface VacationBalanceSummary {
+  total: number
+  used: number
+  available: number
 }
 
-type GetVacationBalanceUseCaseResponse = Either<
+export interface VacationYearBalanceSummary extends VacationBalanceSummary {
+  year: number
+}
+
+interface GetVacationOverviewUseCaseRequest {
+  userId: string
+}
+
+type GetVacationOverviewUseCaseResponse = Either<
   null,
   {
-    total: number
-    used: number
-    available: number
-    recordsCount: number
-    overallBalance: {
-      total: number
-      used: number
-      available: number
-      recordsCount: number
-    }
-    year?: number
+    vacations: Vacation[]
+    totalBalance: VacationBalanceSummary
+    yearBalances: VacationYearBalanceSummary[]
   }
 >
 
 @Injectable()
-export class GetVacationBalanceUseCase {
+export class GetVacationOverviewUseCase {
   constructor(private vacationRepository: VacationRepository) {}
 
   async execute({
     userId,
-    year,
-  }: GetVacationBalanceUseCaseRequest): Promise<GetVacationBalanceUseCaseResponse> {
+  }: GetVacationOverviewUseCaseRequest): Promise<GetVacationOverviewUseCaseResponse> {
     const vacations =
       (await this.vacationRepository.findByUserId(userId, {
         page: 1,
         size: 5000,
       })) ?? []
 
-    const overallBalance = this.calculateBalance(vacations)
-
-    if (!year) {
-      return right({
-        total: overallBalance.total,
-        used: overallBalance.used,
-        available: overallBalance.available,
-        recordsCount: overallBalance.recordsCount,
-        overallBalance,
-      })
-    }
-
-    const vacationsFromYear = vacations.filter(
-      (vacation) => vacation.year === year,
-    )
-    const yearBalance = this.calculateBalance(vacationsFromYear)
-
-    return right({
-      total: yearBalance.total,
-      used: yearBalance.used,
-      available: yearBalance.available,
-      recordsCount: yearBalance.recordsCount,
-      overallBalance,
-      year,
-    })
-  }
-
-  private calculateBalance(
-    vacations: Array<{
-      amoutOfVacationDays: number
-      requestType: VacationRequestType
-      firstVacationDay: Date
-      lastVacationDay: Date
-    }>,
-  ) {
-    if (vacations.length === 0) {
-      return {
-        total: 0,
-        used: 0,
-        available: 0,
-        recordsCount: 0,
-      }
-    }
-
     const currentDate = new Date()
     currentDate.setHours(0, 0, 0, 0)
+
+    const yearMap = new Map<number, { total: number; used: number }>()
 
     let total = 0
     let used = 0
 
     for (const vacation of vacations) {
+      const yearBucket = yearMap.get(vacation.year) ?? { total: 0, used: 0 }
       const days = vacation.amoutOfVacationDays
 
       switch (vacation.requestType) {
         case VacationRequestType.PROGRAMACAO_DE_FERIAS: {
-          total += days
-          used += this.calculateUsedDays(
+          const usedDays = this.calculateUsedDays(
             vacation.firstVacationDay,
             vacation.lastVacationDay,
             days,
             currentDate,
           )
+
+          total += days
+          used += usedDays
+
+          yearBucket.total += days
+          yearBucket.used += usedDays
           break
         }
         case VacationRequestType.SUSPENSAO_DE_GOZO:
           total -= days
+          yearBucket.total -= days
           break
         case VacationRequestType.ALTERACAO_DE_GOZO:
         case VacationRequestType.SOLICITACAO_DE_GOZO:
           break
       }
+
+      yearMap.set(vacation.year, yearBucket)
     }
 
-    return {
-      total,
-      used,
-      available: Math.max(0, total - used),
-      recordsCount: vacations.length,
-    }
+    const yearBalances: VacationYearBalanceSummary[] = Array.from(
+      yearMap.entries(),
+    )
+      .map(([year, values]) => ({
+        year,
+        total: values.total,
+        used: values.used,
+        available: Math.max(0, values.total - values.used),
+      }))
+      .sort((a, b) => b.year - a.year)
+
+    return right({
+      vacations: [...vacations].sort(
+        (a, b) =>
+          b.firstVacationDay.getTime() - a.firstVacationDay.getTime() ||
+          b.createdAt.getTime() - a.createdAt.getTime(),
+      ),
+      totalBalance: {
+        total,
+        used,
+        available: Math.max(0, total - used),
+      },
+      yearBalances,
+    })
   }
 
   private calculateUsedDays(

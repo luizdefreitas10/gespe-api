@@ -1,7 +1,10 @@
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { PrismaService } from '../prisma.service'
 import { Injectable } from '@nestjs/common'
-import { VacationRepository } from '@/domain/app/application/repositories/vacation-repository'
+import {
+  VacationRepository,
+  FindDuplicateVacationParams,
+} from '@/domain/app/application/repositories/vacation-repository'
 import { Vacation } from '@/domain/app/enterprise/entities/vacation'
 import { PrismaVacationMapper } from '../mappers/prisma-vacation-mapper'
 
@@ -44,13 +47,16 @@ export class PrismaVacationRepository extends VacationRepository {
 
   async findByUserId(
     userId: string,
-    { page, size },
+    _pagination: PaginationParams,
   ): Promise<Vacation[] | null> {
+    const { page, size } = _pagination
     // console.log(userId);
     const vacation = await this.prismaService.vacation.findMany({
       where: {
         userId,
       },
+      take: size || 20,
+      skip: (page - 1) * (size || 20),
       include: {
         user: true,
       },
@@ -80,6 +86,28 @@ export class PrismaVacationRepository extends VacationRepository {
     return vacations.map(PrismaVacationMapper.toDomain)
   }
 
+  async findDuplicateVacation(
+    params: FindDuplicateVacationParams,
+  ): Promise<Vacation | null> {
+    const vacation = await this.prismaService.vacation.findFirst({
+      where: {
+        userId: params.userId,
+        firstVacationDay: params.firstVacationDay,
+        lastVacationDay: params.lastVacationDay,
+        requestType: params.requestType,
+        year: params.year,
+        amoutOfVacationDays: params.amoutOfVacationDays,
+        vacationSeiNumber: params.vacationSeiNumber ?? null,
+      },
+    })
+
+    if (!vacation) {
+      return null
+    }
+
+    return PrismaVacationMapper.toDomain(vacation)
+  }
+
   async updateVacation(vacation: Vacation): Promise<void> {
     const prismaVacation = PrismaVacationMapper.toPersistance(vacation)
 
@@ -91,7 +119,7 @@ export class PrismaVacationRepository extends VacationRepository {
     })
   }
 
-  async deleteVacation(vacationId: string): Promise<void> {
-    throw new Error('Method not implemented.')
+  async deleteVacation(_vacationId: string): Promise<void> {
+    throw new Error(`Method not implemented. Vacation ID: ${_vacationId}`)
   }
 }

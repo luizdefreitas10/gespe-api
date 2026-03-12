@@ -17,13 +17,35 @@ export interface CreateVacationRequest {
   effectiveEnjoyment: EffectiveEnjoymentEnum
 }
 
-type CreateVacationResponse = Either<Error, Vacation>
+export interface CreateVacationResult {
+  vacation: Vacation
+  wasCreated: boolean
+}
+
+type CreateVacationResponse = Either<Error, CreateVacationResult>
 
 @Injectable()
 export class VacationRegistrationService {
   constructor(private vacationRepository: VacationRepository) {}
 
-  async create(data: CreateVacationRequest): Promise<CreateVacationResponse> {
+  async createIfNotExists(
+    data: CreateVacationRequest,
+  ): Promise<CreateVacationResponse> {
+    const duplicateVacation =
+      await this.vacationRepository.findDuplicateVacation({
+        userId: data.userId,
+        firstVacationDay: data.firstVacationDay,
+        lastVacationDay: data.lastVacationDay,
+        requestType: data.requestType,
+        year: data.year,
+        amoutOfVacationDays: data.amoutOfVacationDays,
+        vacationSeiNumber: data.vacationSeiNumber ?? null,
+      })
+
+    if (duplicateVacation) {
+      return right({ vacation: duplicateVacation, wasCreated: false })
+    }
+
     const vacation = Vacation.create({
       userId: new UniqueEntityID(data.userId),
       firstVacationDay: data.firstVacationDay,
@@ -38,6 +60,6 @@ export class VacationRegistrationService {
 
     await this.vacationRepository.createVacation(vacation)
 
-    return right(vacation)
+    return right({ vacation, wasCreated: true })
   }
 }

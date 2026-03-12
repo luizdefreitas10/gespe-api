@@ -32,45 +32,44 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute({
-  fullName,
-  password,
-  email,
-  birthDate,
-  department,
-  position,
-  registry,
-  role,
-}: RegisterUserUseCaseRequest): Promise<RegisterUserUseCaseResponse> {
-  const userWithSameEmail = await this.usersRepository.findByEmail(email);
-
-  if (userWithSameEmail) {
-    return left(new UserAlreadyExistsError(email));
-  }
-
-  const hashedPassword = await this.hashGenerator.hash(password);
-
-  // Valores padrão para campos opcionais
-  const defaultBirthDate = birthDate || new Date('1990-01-01');
-  const defaultPosition = position || 'Servidor';
-  const defaultDepartment = department || 'Não informado';
-  const firstName = fullName.trim().split(' ')[0];
-
-
-  const user = User.create({
-    email,
     fullName,
-    password: hashedPassword,
-    birthDate: defaultBirthDate,
-    department: defaultDepartment,
-    position: defaultPosition,
+    password,
+    email,
+    birthDate,
+    department,
+    position,
     registry,
-    role: role ?? 'USER',
-  });
+    role,
+  }: RegisterUserUseCaseRequest): Promise<RegisterUserUseCaseResponse> {
+    const userWithSameEmail = await this.usersRepository.findByEmail(email)
 
-  await this.usersRepository.createUser(user);
+    if (userWithSameEmail) {
+      return left(new UserAlreadyExistsError(email))
+    }
 
-  return right({
-    user,
-  });
-}
+    const hashedPassword = await this.hashGenerator.hash(password)
+
+    // Valores padrão para campos opcionais
+    const defaultBirthDate = birthDate || new Date('1990-01-01')
+    const defaultPosition = position || 'Servidor'
+    const defaultDepartment = department || 'Não informado'
+    const firstName = fullName.trim().split(' ')[0]
+
+    const user = User.create({
+      email,
+      fullName,
+      password: hashedPassword,
+      birthDate: defaultBirthDate,
+      department: defaultDepartment,
+      position: defaultPosition,
+      registry,
+      role: role ?? 'USER',
+    })
+
+    await this.usersRepository.createUser(user)
+
+    return right({
+      user,
+    })
+  }
 }
