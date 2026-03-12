@@ -18,6 +18,7 @@ export class UserByIdPresenter {
       tre: user.tre,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      status: user.status,
     }
   }
 }

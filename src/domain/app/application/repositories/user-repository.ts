@@ -6,6 +6,7 @@ export abstract class UserRepository {
   abstract findById(userId: string): Promise<User | null>
   abstract getAllUsers({ page, size }: PaginationParams): Promise<User[]>
   abstract findByEmail(email: string): Promise<User | null>
+  abstract updateUser(user: User): Promise<void>
   abstract updateTotalTreDays(
     userId: string,
     totalTreDays: number,

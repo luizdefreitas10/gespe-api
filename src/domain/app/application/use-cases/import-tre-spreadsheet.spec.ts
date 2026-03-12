@@ -44,6 +44,14 @@ class InMemoryUsersRepository extends UserRepository {
     return this.items.find((item) => item.email === email) ?? null
   }
 
+  async updateUser(user: User): Promise<void> {
+    const index = this.items.findIndex(
+      (item) => item.id.toString() === user.id.toString(),
+    )
+    if (index < 0) return
+    this.items[index] = user
+  }
+
   async updateTotalTreDays(
     userId: string,
     totalTreDays: number,
