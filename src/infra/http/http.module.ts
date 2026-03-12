@@ -21,8 +21,12 @@ import { FetchUserByIdController } from './controllers/user/fetch-user-by-id.con
 import { FetchUserByIdUseCase } from '@/domain/app/application/use-cases/fetch-user-by-id'
 import { GetVacationBalanceController } from './controllers/vacation/get-vacation-balance-controller'
 import { GetVacationBalanceUseCase } from '@/domain/app/application/use-cases/get-vacation-balance'
+import { GetVacationOverviewController } from './controllers/vacation/get-vacation-overview-controller'
+import { GetVacationOverviewUseCase } from '@/domain/app/application/use-cases/get-vacation-overview'
 import { GetTreBalanceController } from './controllers/tre/get-tre-balance-controller'
 import { GetTreBalanceUseCase } from '@/domain/app/application/use-cases/get-tre-balance'
+import { GetTreOverviewController } from './controllers/tre/get-tre-overview-controller'
+import { GetTreOverviewUseCase } from '@/domain/app/application/use-cases/get-tre-overview'
 import { CreateTreController } from './controllers/tre/create-tre-controller'
 import { RegisterTreUseCase } from '@/domain/app/application/use-cases/register-tre'
 import { FetchTreByIdController } from './controllers/tre/fetch-tre-by-id-controller'
@@ -35,13 +39,18 @@ import { UpdateTreController } from './controllers/tre/update-tre-controller'
 import { UpdateTreUseCase } from '@/domain/app/application/use-cases/update-tre'
 import { DeleteTreController } from './controllers/tre/delete-tre-controller'
 import { DeleteTreUseCase } from '@/domain/app/application/use-cases/delete-tre'
-import { ImportDataController } from "./controllers/import-data/import-data.controller";
+import { ImportDataController } from './controllers/import-data/import-data.controller'
 import { ImportVacationSpreadsheetUseCase } from '@/domain/app/application/use-cases/import-vacation-spreadsheet'
+import { ImportTreSpreadsheetUseCase } from '@/domain/app/application/use-cases/import-tre-spreadsheet'
 import { UserRegistrationService } from '@/domain/app/services/user/user-registration.service'
 import { VacationRegistrationService } from '@/domain/app/services/vacation/vacation-registration.service'
+import { TreRegistrationService } from '@/domain/app/services/tre/tre-registration.service'
+import { TreBalanceSyncService } from '@/domain/app/services/tre/tre-balance-sync.service'
 import { ExcelReaderService } from '@/domain/app/application/parsers/excel-reader.service'
 import { UserSheetMatcherService } from '@/domain/app/application/parsers/user-sheet-matcher.service'
 import { VacationSheetParserService } from '@/domain/app/application/parsers/vacation-sheet-parser.service'
+import { TreUserSheetMatcherService } from '@/domain/app/application/parsers/tre-user-sheet-matcher.service'
+import { TreSheetParserService } from '@/domain/app/application/parsers/tre-sheet-parser.service'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -56,7 +65,9 @@ import { VacationSheetParserService } from '@/domain/app/application/parsers/vac
     FetchVacationByIdController,
     FetchVacationByYearAndUserIdController,
     GetVacationBalanceController,
+    GetVacationOverviewController,
     GetTreBalanceController,
+    GetTreOverviewController,
     CreateTreController,
     FetchTreByIdController,
     FetchAllTresController,
@@ -76,7 +87,9 @@ import { VacationSheetParserService } from '@/domain/app/application/parsers/vac
     FetchVacationByYearAndUserIdUseCase,
     FetchUserByIdUseCase,
     GetVacationBalanceUseCase,
+    GetVacationOverviewUseCase,
     GetTreBalanceUseCase,
+    GetTreOverviewUseCase,
     RegisterTreUseCase,
     FetchTreByIdUseCase,
     FetchAllTresUseCase,
@@ -84,11 +97,16 @@ import { VacationSheetParserService } from '@/domain/app/application/parsers/vac
     UpdateTreUseCase,
     DeleteTreUseCase,
     ImportVacationSpreadsheetUseCase,
+    ImportTreSpreadsheetUseCase,
     ExcelReaderService,
     UserSheetMatcherService,
     VacationSheetParserService,
+    TreUserSheetMatcherService,
+    TreSheetParserService,
     UserRegistrationService,
     VacationRegistrationService,
+    TreRegistrationService,
+    TreBalanceSyncService,
   ],
 })
 export class HttpModule {}

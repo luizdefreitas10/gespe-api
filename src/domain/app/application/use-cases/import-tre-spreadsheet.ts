@@ -2,34 +2,34 @@ import { Either, left, right } from '@/core/either'
 import { Injectable } from '@nestjs/common'
 import { ExcelReaderService } from '../parsers/excel-reader.service'
 import {
-  UserExtractionError,
-  UserSheetMatcherService,
-} from '../parsers/user-sheet-matcher.service'
+  TreUserExtractionError,
+  TreUserSheetMatcherService,
+} from '../parsers/tre-user-sheet-matcher.service'
 import {
-  VacationParseResult,
-  VacationSheetParserService,
-} from '../parsers/vacation-sheet-parser.service'
+  TreParseResult,
+  TreSheetParserService,
+} from '../parsers/tre-sheet-parser.service'
 import { UserRegistrationService } from '../../services/user/user-registration.service'
-import { VacationRegistrationService } from '../../services/vacation/vacation-registration.service'
+import { TreRegistrationService } from '../../services/tre/tre-registration.service'
 
-interface ImportVacationSpreadsheetRequest {
+interface ImportTreSpreadsheetRequest {
   file: Buffer
 }
 
-export interface ImportedUserSummary {
+export interface ImportedTreUserSummary {
   fullName: string
   email: string | null
   sheetName: string | null
   status: 'CREATED' | 'ALREADY_EXISTS' | 'ERROR'
   reason: string
-  vacations: {
+  tres: {
     created: number
     alreadyExisted: number
     errors: string[]
   }
 }
 
-export interface VacationImportErrorDetail {
+export interface TreImportErrorDetail {
   fullName: string
   email: string
   sheetName: string
@@ -38,35 +38,35 @@ export interface VacationImportErrorDetail {
   type: 'PARSE' | 'CREATE'
 }
 
-interface ImportResult {
+interface ImportTreResult {
   totalUsersInSpreadsheet: number
   processedUsers: number
   usersCreated: number
   usersAlreadyExisted: number
   usersWithErrors: number
-  vacationsCreated: number
-  vacationsAlreadyExisted: number
-  vacationsWithErrors: number
-  vacationErrors: VacationImportErrorDetail[]
-  extractionErrors: UserExtractionError[]
-  users: ImportedUserSummary[]
+  tresCreated: number
+  tresAlreadyExisted: number
+  tresWithErrors: number
+  treErrors: TreImportErrorDetail[]
+  extractionErrors: TreUserExtractionError[]
+  users: ImportedTreUserSummary[]
 }
 
-type ImportVacationSpreadsheetResponse = Either<Error, ImportResult>
+type ImportTreSpreadsheetResponse = Either<Error, ImportTreResult>
 
 @Injectable()
-export class ImportVacationSpreadsheetUseCase {
+export class ImportTreSpreadsheetUseCase {
   constructor(
     private excelReader: ExcelReaderService,
-    private userSheetMatcher: UserSheetMatcherService,
-    private vacationParser: VacationSheetParserService,
+    private treUserSheetMatcher: TreUserSheetMatcherService,
+    private treSheetParser: TreSheetParserService,
     private userRegistration: UserRegistrationService,
-    private vacationRegistration: VacationRegistrationService,
+    private treRegistration: TreRegistrationService,
   ) {}
 
   async execute({
     file,
-  }: ImportVacationSpreadsheetRequest): Promise<ImportVacationSpreadsheetResponse> {
+  }: ImportTreSpreadsheetRequest): Promise<ImportTreSpreadsheetResponse> {
     try {
       const workbook = this.excelReader.parseWorkbook(file)
 
@@ -77,23 +77,20 @@ export class ImportVacationSpreadsheetUseCase {
         return left(new Error(`Planilha "${mainSheetName}" não encontrada`))
       }
 
-      const extractionResult = this.userSheetMatcher.extractUsersFromMainSheet(
-        workbook,
-        mainSheetName,
-      )
+      const extractionResult =
+        this.treUserSheetMatcher.extractUsersFromMainSheet(
+          workbook,
+          mainSheetName,
+        )
 
-      if (extractionResult.errors.length > 0) {
-        console.warn('Avisos durante extração:', extractionResult.errors)
-      }
-
-      const users: ImportedUserSummary[] = extractionResult.errors.map(
+      const users: ImportedTreUserSummary[] = extractionResult.errors.map(
         (error) => ({
           fullName: error.fullName,
           email: null,
           sheetName: null,
           status: 'ERROR',
           reason: error.reason,
-          vacations: {
+          tres: {
             created: 0,
             alreadyExisted: 0,
             errors: [],
@@ -104,10 +101,10 @@ export class ImportVacationSpreadsheetUseCase {
       let usersCreated = 0
       let usersAlreadyExisted = 0
       let usersWithErrors = extractionResult.errors.length
-      let vacationsCreated = 0
-      let vacationsAlreadyExisted = 0
-      let vacationsWithErrors = 0
-      const vacationErrors: VacationImportErrorDetail[] = []
+      let tresCreated = 0
+      let tresAlreadyExisted = 0
+      let tresWithErrors = 0
+      const treErrors: TreImportErrorDetail[] = []
 
       for (const userMatch of extractionResult.users) {
         try {
@@ -126,7 +123,7 @@ export class ImportVacationSpreadsheetUseCase {
               sheetName: userMatch.sheetName,
               status: 'ERROR',
               reason: `Erro ao criar usuário: ${registerResult.value.message}`,
-              vacations: {
+              tres: {
                 created: 0,
                 alreadyExisted: 0,
                 errors: [],
@@ -144,13 +141,10 @@ export class ImportVacationSpreadsheetUseCase {
             usersAlreadyExisted++
           }
 
-          const vacationParsingResult: VacationParseResult =
-            this.vacationParser.parseUserVacations(
-              workbook,
-              userMatch.sheetName,
-            )
+          const treParsingResult: TreParseResult =
+            this.treSheetParser.parseUserTres(workbook, userMatch.sheetName)
 
-          const currentUserSummary: ImportedUserSummary = {
+          const currentUserSummary: ImportedTreUserSummary = {
             fullName: userMatch.fullName,
             email: userMatch.email,
             sheetName: userMatch.sheetName,
@@ -158,16 +152,16 @@ export class ImportVacationSpreadsheetUseCase {
             reason: wasCreated
               ? 'Usuário criado com sucesso'
               : 'Usuário já existente no banco',
-            vacations: {
+            tres: {
               created: 0,
               alreadyExisted: 0,
               errors: [],
             },
           }
 
-          for (const parseError of vacationParsingResult.errors) {
-            vacationsWithErrors++
-            vacationErrors.push({
+          for (const parseError of treParsingResult.errors) {
+            tresWithErrors++
+            treErrors.push({
               fullName: userMatch.fullName,
               email: userMatch.email,
               sheetName: userMatch.sheetName,
@@ -175,39 +169,36 @@ export class ImportVacationSpreadsheetUseCase {
               reason: parseError.reason,
               type: 'PARSE',
             })
-            currentUserSummary.vacations.errors.push(
+            currentUserSummary.tres.errors.push(
               `Linha ${parseError.row}: ${parseError.reason}`,
             )
           }
 
-          for (const vacationData of vacationParsingResult.vacations) {
-            const vacationResult =
-              await this.vacationRegistration.createIfNotExists({
-                userId,
-                ...vacationData,
-              })
+          for (const treData of treParsingResult.tres) {
+            const treResult = await this.treRegistration.createIfNotExists({
+              userId,
+              ...treData,
+            })
 
-            if (vacationResult.isLeft()) {
-              vacationsWithErrors++
-              vacationErrors.push({
+            if (treResult.isLeft()) {
+              tresWithErrors++
+              treErrors.push({
                 fullName: userMatch.fullName,
                 email: userMatch.email,
                 sheetName: userMatch.sheetName,
                 row: null,
-                reason: vacationResult.value.message,
+                reason: treResult.value.message,
                 type: 'CREATE',
               })
-              currentUserSummary.vacations.errors.push(
-                `Erro ao criar férias: ${vacationResult.value.message}`,
+              currentUserSummary.tres.errors.push(
+                `Erro ao criar TRE: ${treResult.value.message}`,
               )
+            } else if (treResult.value.wasCreated) {
+              tresCreated++
+              currentUserSummary.tres.created++
             } else {
-              if (vacationResult.value.wasCreated) {
-                vacationsCreated++
-                currentUserSummary.vacations.created++
-              } else {
-                vacationsAlreadyExisted++
-                currentUserSummary.vacations.alreadyExisted++
-              }
+              tresAlreadyExisted++
+              currentUserSummary.tres.alreadyExisted++
             }
           }
 
@@ -222,13 +213,12 @@ export class ImportVacationSpreadsheetUseCase {
             sheetName: userMatch.sheetName,
             status: 'ERROR',
             reason: `Erro ao processar usuário: ${errorMessage}`,
-            vacations: {
+            tres: {
               created: 0,
               alreadyExisted: 0,
               errors: [`Erro ao processar usuário: ${errorMessage}`],
             },
           })
-          console.error(`Erro: ${errorMessage}`)
         }
       }
 
@@ -239,17 +229,19 @@ export class ImportVacationSpreadsheetUseCase {
         usersCreated,
         usersAlreadyExisted,
         usersWithErrors,
-        vacationsCreated,
-        vacationsAlreadyExisted,
-        vacationsWithErrors,
-        vacationErrors,
+        tresCreated,
+        tresAlreadyExisted,
+        tresWithErrors,
+        treErrors,
         extractionErrors: extractionResult.errors,
         users,
       })
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      return left(new Error(`Erro ao processar planilha: ${errorMessage}`))
+      return left(
+        new Error(`Erro ao processar planilha de TRE: ${errorMessage}`),
+      )
     }
   }
 }

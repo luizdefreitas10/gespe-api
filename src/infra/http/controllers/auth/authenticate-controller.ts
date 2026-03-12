@@ -52,6 +52,10 @@ export class AuthenticateController {
 
     return {
       access_token: accessToken,
+      user: {
+        id: user.id,
+        role: user.role,
+      },
     }
   }
 }

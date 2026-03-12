@@ -2,25 +2,25 @@ import { Injectable } from '@nestjs/common'
 import * as XLSX from 'xlsx'
 import { ExcelReaderService } from './excel-reader.service'
 
-export interface UserSheetMatch {
+export interface TreUserSheetMatch {
   fullName: string
   email: string
   sheetName: string
 }
 
-export interface UserExtractionError {
+export interface TreUserExtractionError {
   fullName: string
   row: number
   reason: string
 }
 
-export interface ExtractionResult {
-  users: UserSheetMatch[]
-  errors: UserExtractionError[]
+export interface TreExtractionResult {
+  users: TreUserSheetMatch[]
+  errors: TreUserExtractionError[]
 }
 
 @Injectable()
-export class UserSheetMatcherService {
+export class TreUserSheetMatcherService {
   constructor(private excelReader: ExcelReaderService) {}
 
   findUserSheet(workbook: XLSX.WorkBook, fullName: string): string | null {
@@ -83,42 +83,21 @@ export class UserSheetMatcherService {
       return bestMatch.name
     }
 
-    let longestMatch: { name: string; length: number } | null = null
-
-    for (const sheetName of sheetNames) {
-      const normalizedSheet = this.excelReader.normalize(sheetName)
-      const commonLength = this.getLongestCommonSubstring(
-        normalizedFullName,
-        normalizedSheet,
-      ).length
-
-      if (commonLength >= 8) {
-        if (!longestMatch || commonLength > longestMatch.length) {
-          longestMatch = { name: sheetName, length: commonLength }
-        }
-      }
-    }
-
-    if (longestMatch) {
-      return longestMatch.name
-    }
-
-    console.warn(`   ⚠️  NENHUMA ABA ENCONTRADA para: ${fullName}`)
     return null
   }
 
   extractUsersFromMainSheet(
     workbook: XLSX.WorkBook,
     mainSheetName: string,
-  ): ExtractionResult {
+  ): TreExtractionResult {
     const mainSheet = this.excelReader.getSheet(workbook, mainSheetName)
     if (!mainSheet) {
       throw new Error(`Planilha "${mainSheetName}" não encontrada`)
     }
 
-    const data = this.excelReader.sheetToJson(mainSheet) as unknown[][]
-    const users: UserSheetMatch[] = []
-    const errors: UserExtractionError[] = []
+    const data = this.excelReader.sheetToJson(mainSheet)
+    const users: TreUserSheetMatch[] = []
+    const errors: TreUserExtractionError[] = []
 
     const { nomeColumnIndex, dataStartRowIndex } = this.findNameColumn(data)
 
@@ -138,8 +117,6 @@ export class UserSheetMatcherService {
         const userSheetName = this.findUserSheet(workbook, nameStr)
 
         if (!userSheetName) {
-          const errorMsg = `Aba não encontrada para o usuário: ${nameStr}`
-          console.warn(`   ⚠️  ${errorMsg}`)
           errors.push({
             fullName: nameStr,
             row: i + 1,
@@ -150,8 +127,6 @@ export class UserSheetMatcherService {
 
         const userSheet = this.excelReader.getSheet(workbook, userSheetName)
         if (!userSheet) {
-          const errorMsg = `Erro ao abrir aba para o usuário: ${nameStr}`
-          console.warn(`   ⚠️  ${errorMsg}`)
           errors.push({
             fullName: nameStr,
             row: i + 1,
@@ -160,26 +135,22 @@ export class UserSheetMatcherService {
           continue
         }
 
-        const emailValue = this.excelReader.getCellValue(userSheet, 'B9')
+        const email = this.extractEmailFromSheet(userSheet)
 
-        if (!emailValue) {
+        if (!email) {
           errors.push({
             fullName: nameStr,
             row: i + 1,
-            reason: 'Email não encontrado na célula B9 da aba do usuário',
+            reason: 'Email não encontrado na aba do usuário',
           })
           continue
         }
 
-        const email = emailValue.toString().trim()
-
         if (!this.excelReader.isValidEmail(email)) {
-          const errorMsg = `Email inválido na célula B9 para ${nameStr}: ${email}`
-          console.warn(`   ⚠️  ${errorMsg}`)
           errors.push({
             fullName: nameStr,
             row: i + 1,
-            reason: `Email inválido na célula B9: ${email}`,
+            reason: `Email inválido na aba do usuário: ${email}`,
           })
           continue
         }
@@ -192,8 +163,6 @@ export class UserSheetMatcherService {
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error)
-        const errorMsg = `Erro ao processar usuário ${nameStr}: ${errorMessage}`
-        console.error(`   ❌ ${errorMsg}`)
         errors.push({
           fullName: nameStr,
           row: i + 1,
@@ -202,16 +171,32 @@ export class UserSheetMatcherService {
       }
     }
 
-    if (errors.length > 0) {
-      console.warn(`\n⚠️  USUÁRIOS NÃO PROCESSADOS (${errors.length}):`)
-      errors.forEach((error) => {
-        console.warn(
-          `   - [linha ${error.row}] ${error.fullName}: ${error.reason}`,
-        )
-      })
+    return { users, errors }
+  }
+
+  private extractEmailFromSheet(sheet: XLSX.WorkSheet): string | null {
+    const data = this.excelReader.sheetToJson(sheet)
+
+    for (let rowIndex = 0; rowIndex < Math.min(20, data.length); rowIndex++) {
+      const row = data[rowIndex] as unknown[]
+
+      for (let colIndex = 0; colIndex < row.length; colIndex++) {
+        const cellValue = row[colIndex]
+        if (!cellValue) continue
+
+        const normalizedCell = this.excelReader.normalize(cellValue.toString())
+        if (normalizedCell === 'EMAIL') {
+          const possibleEmail = row[colIndex + 1]
+          if (!possibleEmail) {
+            return null
+          }
+
+          return possibleEmail.toString().trim()
+        }
+      }
     }
 
-    return { users, errors }
+    return null
   }
 
   private findNameColumn(data: unknown[][]): {
@@ -227,26 +212,14 @@ export class UserSheetMatcherService {
       for (let colIdx = 0; colIdx < row.length; colIdx++) {
         const cell = row[colIdx]
 
-        if (cell) {
-          const cellStr = this.excelReader.normalize(cell.toString())
+        if (!cell) continue
 
-          if (cellStr === 'NOME' || cellStr.includes('NOME')) {
-            nomeColumnIndex = colIdx
-            dataStartRowIndex = rowIdx + 1
+        const cellStr = this.excelReader.normalize(cell.toString())
 
-            if (rowIdx + 1 < data.length) {
-              const nextRow = data[rowIdx + 1] as unknown[]
-              const nextCell = nextRow[colIdx]
-
-              if (
-                !nextCell ||
-                nextCell.toString().toUpperCase().includes('NOME')
-              ) {
-                dataStartRowIndex = rowIdx + 2
-              }
-            }
-            break
-          }
+        if (cellStr === 'NOME' || cellStr.includes('NOME')) {
+          nomeColumnIndex = colIdx
+          dataStartRowIndex = rowIdx + 1
+          break
         }
       }
 
@@ -254,30 +227,5 @@ export class UserSheetMatcherService {
     }
 
     return { nomeColumnIndex, dataStartRowIndex }
-  }
-
-  private getLongestCommonSubstring(str1: string, str2: string): string {
-    const matrix: number[][] = []
-    let maxLength = 0
-    let endIndex = 0
-
-    for (let i = 0; i <= str1.length; i++) {
-      matrix[i] = []
-      for (let j = 0; j <= str2.length; j++) {
-        if (i === 0 || j === 0) {
-          matrix[i][j] = 0
-        } else if (str1[i - 1] === str2[j - 1]) {
-          matrix[i][j] = matrix[i - 1][j - 1] + 1
-          if (matrix[i][j] > maxLength) {
-            maxLength = matrix[i][j]
-            endIndex = i
-          }
-        } else {
-          matrix[i][j] = 0
-        }
-      }
-    }
-
-    return str1.substring(endIndex - maxLength, endIndex)
   }
 }

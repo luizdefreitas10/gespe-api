@@ -14,6 +14,16 @@ export interface VacationImportData {
   effectiveEnjoyment: EffectiveEnjoymentEnum
 }
 
+export interface VacationParseError {
+  row: number
+  reason: string
+}
+
+export interface VacationParseResult {
+  vacations: VacationImportData[]
+  errors: VacationParseError[]
+}
+
 interface HeaderMapping {
   dataSolicitacao?: number
   documentNumber?: number
@@ -31,20 +41,27 @@ export class VacationSheetParserService {
   parseUserVacations(
     workbook: XLSX.WorkBook,
     sheetName: string,
-  ): VacationImportData[] {
+  ): VacationParseResult {
     const sheet = workbook.Sheets[sheetName]
     if (!sheet) {
-      return []
+      return {
+        vacations: [],
+        errors: [],
+      }
     }
 
-    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][]
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][]
     const { headerRowIndex, headerMapping } = this.findVacationHeader(data)
 
     if (headerRowIndex === -1) {
-      return []
+      return {
+        vacations: [],
+        errors: [],
+      }
     }
 
     const vacations: VacationImportData[] = []
+    const errors: VacationParseError[] = []
 
     for (let i = headerRowIndex + 1; i < data.length; i++) {
       const row = data[i]
@@ -54,33 +71,38 @@ export class VacationSheetParserService {
       }
 
       try {
-        const dataSolicitacao = headerMapping.dataSolicitacao !== undefined
-          ? row[headerMapping.dataSolicitacao]
-          : null
+        const dataSolicitacao =
+          headerMapping.dataSolicitacao !== undefined
+            ? row[headerMapping.dataSolicitacao]
+            : null
 
-        const documentNumber = headerMapping.documentNumber !== undefined
-          ? row[headerMapping.documentNumber]
-          : null
+        const documentNumber =
+          headerMapping.documentNumber !== undefined
+            ? row[headerMapping.documentNumber]
+            : null
 
-        const requestTypeStr = headerMapping.requestType !== undefined
-          ? row[headerMapping.requestType]
-          : null
+        const requestTypeStr =
+          headerMapping.requestType !== undefined
+            ? row[headerMapping.requestType]
+            : null
 
-        const year = headerMapping.year !== undefined
-          ? row[headerMapping.year]
-          : null
+        const year =
+          headerMapping.year !== undefined ? row[headerMapping.year] : null
 
-        const amountOfDays = headerMapping.amountOfDays !== undefined
-          ? row[headerMapping.amountOfDays]
-          : null
+        const amountOfDays =
+          headerMapping.amountOfDays !== undefined
+            ? row[headerMapping.amountOfDays]
+            : null
 
-        const observations = headerMapping.observations !== undefined
-          ? row[headerMapping.observations]
-          : null
+        const observations =
+          headerMapping.observations !== undefined
+            ? row[headerMapping.observations]
+            : null
 
-        const effectiveEnjoymentStr = headerMapping.effectiveEnjoyment !== undefined
-          ? row[headerMapping.effectiveEnjoyment]
-          : null
+        const effectiveEnjoymentStr =
+          headerMapping.effectiveEnjoyment !== undefined
+            ? row[headerMapping.effectiveEnjoyment]
+            : null
 
         if (!dataSolicitacao || !requestTypeStr || !year) {
           continue
@@ -102,8 +124,12 @@ export class VacationSheetParserService {
 
           if (dateRanges.length === 2) {
             console.log(`\n📅 Dividindo férias de 30 dias em 2 períodos:`)
-            console.log(`   Período 1: ${dateRanges[0].startDate.toLocaleDateString()} - ${dateRanges[0].endDate.toLocaleDateString()}`)
-            console.log(`   Período 2: ${dateRanges[1].startDate.toLocaleDateString()} - ${dateRanges[1].endDate.toLocaleDateString()}`)
+            console.log(
+              `   Período 1: ${dateRanges[0].startDate.toLocaleDateString()} - ${dateRanges[0].endDate.toLocaleDateString()}`,
+            )
+            console.log(
+              `   Período 2: ${dateRanges[1].startDate.toLocaleDateString()} - ${dateRanges[1].endDate.toLocaleDateString()}`,
+            )
 
             vacations.push({
               firstVacationDay: dateRanges[0].startDate,
@@ -131,19 +157,35 @@ export class VacationSheetParserService {
           }
         }
 
-        const firstVacationDay = this.excelReader.parseExcelDate(dataSolicitacao)
+        let firstVacationDay =
+          this.excelReader.tryParseExcelDate(dataSolicitacao)
         let lastVacationDay = firstVacationDay
 
         if (observationsStr) {
-          const dateRange = this.extractDateRangeFromObservations(observationsStr)
+          const dateRange =
+            this.extractDateRangeFromObservations(observationsStr)
           if (dateRange) {
+            if (!firstVacationDay) {
+              firstVacationDay = dateRange.startDate
+            }
             lastVacationDay = dateRange.endDate
           }
         }
 
+        if (!firstVacationDay) {
+          errors.push({
+            row: i + 1,
+            reason:
+              'Data da solicitação inválida e sem intervalo de observação válido para inferência',
+          })
+          continue
+        }
+
+        const normalizedLastVacationDay = lastVacationDay ?? firstVacationDay
+
         vacations.push({
           firstVacationDay,
-          lastVacationDay,
+          lastVacationDay: normalizedLastVacationDay,
           vacationSeiNumber: documentNumber?.toString() || null,
           requestType,
           year: yearNum,
@@ -153,14 +195,21 @@ export class VacationSheetParserService {
         })
       } catch (error) {
         console.error(`Erro ao processar linha ${i + 1}:`, error)
+        errors.push({
+          row: i + 1,
+          reason: `Erro inesperado ao processar linha: ${error instanceof Error ? error.message : String(error)}`,
+        })
         continue
       }
     }
 
-    return vacations
+    return {
+      vacations,
+      errors,
+    }
   }
 
-  private findVacationHeader(data: any[][]): {
+  private findVacationHeader(data: unknown[][]): {
     headerRowIndex: number
     headerMapping: HeaderMapping
   } {
@@ -172,7 +221,8 @@ export class VacationSheetParserService {
 
       const dataSolicitacaoIndex = row.findIndex(
         (cell: string) =>
-          cell && this.excelReader.normalize(cell).includes('DATA DA SOLICITACAO'),
+          cell &&
+          this.excelReader.normalize(cell).includes('DATA DA SOLICITACAO'),
       )
 
       if (dataSolicitacaoIndex !== -1) {
@@ -186,7 +236,8 @@ export class VacationSheetParserService {
           if (cellNormalized.includes('DATA DA SOLICITACAO')) {
             headerMapping.dataSolicitacao = index
           } else if (
-            cellNormalized.includes('DOCUMENTO') && cellNormalized.includes('SEI')
+            cellNormalized.includes('DOCUMENTO') &&
+            cellNormalized.includes('SEI')
           ) {
             headerMapping.documentNumber = index
           } else if (
@@ -218,44 +269,14 @@ export class VacationSheetParserService {
     return { headerRowIndex, headerMapping }
   }
 
-  private parseDate(dateValue: any): Date {
-    if (dateValue instanceof Date) {
-      return dateValue
-    }
-
-    if (typeof dateValue === 'number') {
-      const excelEpoch = new Date(1899, 11, 30)
-      const jsDate = new Date(
-        excelEpoch.getTime() + dateValue * 24 * 60 * 60 * 1000,
-      )
-      return jsDate
-    }
-
-    if (typeof dateValue === 'string') {
-      const dateStr = dateValue.trim()
-
-      const brDateMatch = dateStr.match(/(\d{2})\/(\d{2})\/(\d{2,4})/)
-      if (brDateMatch) {
-        const [, day, month, year] = brDateMatch
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-      }
-
-      const parsed = new Date(dateStr)
-      if (!isNaN(parsed.getTime())) {
-        return parsed
-      }
-    }
-
-    return new Date()
-  }
-
   private mapRequestType(requestTypeStr: string): VacationRequestType {
     const normalized = this.excelReader.normalize(requestTypeStr)
 
     if (normalized.includes('PROGRAMACAO')) {
       return 'PROGRAMACAO_DE_FERIAS'
     } else if (
-      normalized.includes('SOLICITACAO') && normalized.includes('GOZO')
+      normalized.includes('SOLICITACAO') &&
+      normalized.includes('GOZO')
     ) {
       return 'SOLICITACAO_DE_GOZO'
     } else if (normalized.includes('ALTERACAO')) {

@@ -4,6 +4,7 @@ import { TreNotFoundError } from './errors/tre-not-found'
 import { TreRepository } from '../repositories/tre-repository'
 import { TreRequestType } from '@prisma/client'
 import { Tre } from '../../enterprise/entities/tre'
+import { TreBalanceSyncService } from '../../services/tre/tre-balance-sync.service'
 
 interface UpdateTreUseCaseRequest {
   id: string
@@ -25,7 +26,10 @@ type UpdateTreUseCaseResponse = Either<
 
 @Injectable()
 export class UpdateTreUseCase {
-  constructor(private treRepository: TreRepository) {}
+  constructor(
+    private treRepository: TreRepository,
+    private treBalanceSyncService: TreBalanceSyncService,
+  ) {}
 
   async execute({
     id,
@@ -69,6 +73,7 @@ export class UpdateTreUseCase {
     tre.updatedAt = new Date()
 
     await this.treRepository.updateTre(tre)
+    await this.treBalanceSyncService.syncUserTotalTreDays(tre.userId.toString())
 
     return right({
       tre,

@@ -10,11 +10,12 @@ import { Role } from '@prisma/client'
 import { z } from 'zod'
 import { CurrentUser } from '@/infra/auth/current-user-decorator'
 import { TokenBodySchema } from '@/infra/auth/jwt.strategy'
-import { GetTreBalanceUseCase } from '@/domain/app/application/use-cases/get-tre-balance'
+import { GetTreOverviewUseCase } from '@/domain/app/application/use-cases/get-tre-overview'
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe'
 import { Roles } from '@/infra/auth/roles.decorator'
+import { TrePresenter } from '../../presenters/http-tre-presenter'
 
-const treBalanceQuerySchema = z.object({
+const treOverviewQuerySchema = z.object({
   userId: z.string().uuid().optional(),
   year: z
     .string()
@@ -24,33 +25,29 @@ const treBalanceQuerySchema = z.object({
     .optional(),
 })
 
-type TreBalanceQuerySchema = z.infer<typeof treBalanceQuerySchema>
+type TreOverviewQuerySchema = z.infer<typeof treOverviewQuerySchema>
 
-@Controller('/tre/balance')
-export class GetTreBalanceController {
-  constructor(private getTreBalanceUseCase: GetTreBalanceUseCase) {}
+@Controller('/tre/overview')
+export class GetTreOverviewController {
+  constructor(private getTreOverviewUseCase: GetTreOverviewUseCase) {}
 
   @Get()
   @HttpCode(200)
   @Roles([Role.ADMIN, Role.GESTOR, Role.USER])
   async handle(
     @CurrentUser() user: TokenBodySchema,
-    @Query(new ZodValidationPipe(treBalanceQuerySchema))
-    query: TreBalanceQuerySchema,
+    @Query(new ZodValidationPipe(treOverviewQuerySchema))
+    query: TreOverviewQuerySchema,
   ) {
     let userIdToQuery = query.userId
 
     if (user.role === Role.USER) {
-      // USER só pode consultar a si mesmo
       if (query.userId && query.userId !== user.sub) {
-        throw new ForbiddenException(
-          'Users can only access their own TRE balance',
-        )
+        throw new ForbiddenException('Users can only access their own TRE overview')
       }
 
       userIdToQuery = user.sub
     } else {
-      // ADMIN/GESTOR podem consultar qualquer user
       userIdToQuery = query.userId ?? user.sub
     }
 
@@ -64,26 +61,23 @@ export class GetTreBalanceController {
       throw new BadRequestException('Parameter "year" must be a number')
     }
 
-    const result = await this.getTreBalanceUseCase.execute({
+    const result = await this.getTreOverviewUseCase.execute({
       userId: userIdToQuery,
       year,
     })
 
     if (result.isLeft()) {
-      throw new BadRequestException('Error calculating TRE balance')
+      throw new BadRequestException('Error calculating TRE overview')
     }
 
     return {
       userId: userIdToQuery,
-      total: result.value.total,
-      used: result.value.used,
-      available: result.value.available,
-      recordsCount: result.value.recordsCount,
-      overallBalance: result.value.overallBalance,
-      year: result.value.year || null,
-      message: result.value.year
-        ? `Saldo de TRE para o ano ${result.value.year}`
-        : 'Saldo total de TRE (todos os anos)',
+      selectedYear: result.value.selectedYear,
+      totalRecordsCount: result.value.totalRecordsCount,
+      filteredRecordsCount: result.value.filteredRecordsCount,
+      totalBalance: result.value.totalBalance,
+      yearBalances: result.value.yearBalances,
+      tres: result.value.tres.map(TrePresenter.toHTTP),
     }
   }
 }

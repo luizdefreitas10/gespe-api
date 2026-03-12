@@ -4,6 +4,7 @@ import { TreRequestType } from '@prisma/client'
 import { Tre } from '../../enterprise/entities/tre'
 import { TreRepository } from '../repositories/tre-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { TreBalanceSyncService } from '../../services/tre/tre-balance-sync.service'
 
 interface RegisterTreUseCaseRequest {
   userId: UniqueEntityID
@@ -25,7 +26,10 @@ type RegisterTreUseCaseResponse = Either<
 
 @Injectable()
 export class RegisterTreUseCase {
-  constructor(private treRepository: TreRepository) {}
+  constructor(
+    private treRepository: TreRepository,
+    private treBalanceSyncService: TreBalanceSyncService,
+  ) {}
 
   async execute({
     userId,
@@ -49,6 +53,7 @@ export class RegisterTreUseCase {
     })
 
     await this.treRepository.createTre(tre)
+    await this.treBalanceSyncService.syncUserTotalTreDays(userId.toString())
 
     return right({
       tre,

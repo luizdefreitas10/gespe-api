@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   Query,
-  UsePipes,
 } from '@nestjs/common'
 import { Role } from '@prisma/client'
 import { z } from 'zod'
@@ -77,6 +76,8 @@ export class GetVacationBalanceController {
       total: result.value.total,
       used: result.value.used,
       available: result.value.available,
+      recordsCount: result.value.recordsCount,
+      overallBalance: result.value.overallBalance,
       year: result.value.year || null,
       message: result.value.year
         ? `Saldo de férias para o ano ${result.value.year}`
