@@ -30,6 +30,7 @@ export class PrismaUserMapper {
         tre: rawUser.tre ?? [],
         createdAt: rawUser.createdAt,
         updatedAt: rawUser.updatedAt,
+        status: rawUser.status,
       },
       new UniqueEntityID(rawUser.id),
     )
@@ -50,6 +51,7 @@ export class PrismaUserMapper {
       totalTreDays: user.totalTreDays,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt ?? undefined,
+      status: user.status,
     }
   }
 }

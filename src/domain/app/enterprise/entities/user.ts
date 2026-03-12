@@ -33,8 +33,16 @@ export class User extends Entity<UserProps> {
     return this.props.fullName
   }
 
+  set userName(fullName: string) {
+    this.props.fullName = fullName
+  }
+
   get email(): string {
     return this.props.email
+  }
+
+  set email(email: string) {
+    this.props.email = email
   }
 
   get password(): string {
@@ -57,16 +65,32 @@ export class User extends Entity<UserProps> {
     return this.props.registry
   }
 
+  set registry(registry: string | null | undefined) {
+    this.props.registry = registry
+  }
+
   get position() {
     return this.props.position
+  }
+
+  set position(position: string) {
+    this.props.position = position
   }
 
   get department() {
     return this.props.department
   }
 
+  set department(department: string) {
+    this.props.department = department
+  }
+
   get role() {
     return this.props.role
+  }
+
+  set role(role: Role | undefined) {
+    this.props.role = role
   }
 
   get totalVacationDays() {
@@ -105,7 +129,7 @@ export class User extends Entity<UserProps> {
     return this.props.status
   }
 
-  set status(status) {
+  set status(status: Status | undefined) {
     this.props.status = status
   }
 

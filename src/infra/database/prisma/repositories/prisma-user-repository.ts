@@ -70,6 +70,24 @@ export class PrismaUserRepository extends UserRepository {
     return PrismaUserMapper.toDomain(user)
   }
 
+  async updateUser(user: User): Promise<void> {
+    await this.prismaService.user.update({
+      where: {
+        id: user.id.toString(),
+      },
+      data: {
+        fullName: user.userName,
+        email: user.email,
+        birthDate: user.birthDate,
+        registry: user.registry ?? null,
+        position: user.position,
+        department: user.department,
+        role: user.role,
+        status: user.status,
+      },
+    })
+  }
+
   async updateTotalTreDays(
     userId: string,
     totalTreDays: number,

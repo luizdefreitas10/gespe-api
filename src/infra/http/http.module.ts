@@ -19,6 +19,8 @@ import { FetchVacationByYearAndUserIdUseCase } from '@/domain/app/application/us
 import { HelloWorldController } from './controllers/user/hello-controller'
 import { FetchUserByIdController } from './controllers/user/fetch-user-by-id.controller'
 import { FetchUserByIdUseCase } from '@/domain/app/application/use-cases/fetch-user-by-id'
+import { UpdateUserController } from './controllers/user/update-user-controller'
+import { UpdateUserUseCase } from '@/domain/app/application/use-cases/update-user'
 import { GetVacationBalanceController } from './controllers/vacation/get-vacation-balance-controller'
 import { GetVacationBalanceUseCase } from '@/domain/app/application/use-cases/get-vacation-balance'
 import { GetVacationOverviewController } from './controllers/vacation/get-vacation-overview-controller'
@@ -58,6 +60,7 @@ import { TreSheetParserService } from '@/domain/app/application/parsers/tre-shee
     CreateAccountController,
     AuthenticateController,
     FetchUserByIdController,
+    UpdateUserController,
     FetchUsersController,
     CreateVacationController,
     FetchVacationByUserIdController,
@@ -86,6 +89,7 @@ import { TreSheetParserService } from '@/domain/app/application/parsers/tre-shee
     FetchVacationByIdUseCase,
     FetchVacationByYearAndUserIdUseCase,
     FetchUserByIdUseCase,
+    UpdateUserUseCase,
     GetVacationBalanceUseCase,
     GetVacationOverviewUseCase,
     GetTreBalanceUseCase,
