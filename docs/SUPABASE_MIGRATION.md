@@ -20,24 +20,30 @@ O projeto **luizdefreitas10's Project** (`nzrlmvrsoqhiovkkcbgl`) já está criad
 
 ---
 
-## Passo 1: Obter a connection string (recomendado: conexão direta)
+## Passo 1: Connection strings (Prisma: `DATABASE_URL` + `DIRECT_URL`)
 
-Para **Prisma** e **`prisma migrate deploy`** no Render, use a conexão **direta** (porta **5432**), não o pooler na 6543 — evita erros como `FATAL: Tenant or user not found`.
+O projeto usa [o padrão Prisma + Supabase](https://supabase.com/docs/guides/database/prisma): **`DATABASE_URL`** (pooler modo **transação**, porta **6543**) e **`DIRECT_URL`** (pooler modo **sessão**, porta **5432** no **mesmo** host `aws-0-<região>.pooler.supabase.com`).
 
-1. Acesse [supabase.com/dashboard](https://supabase.com/dashboard) e abra o projeto
-2. **Project Settings** → **Database** → **Connection string** → **URI**
-3. Use o host **`db.<ref>.supabase.co`** e porta **5432** (modo “Direct connection”, se o painel separar)
-4. Substitua `[YOUR-PASSWORD]` pela senha real
-5. Garanta **`?sslmode=require`** no final
+Isso evita **`P1001: Can't reach database server`** no Render ao usar só o host **`db.<ref>.supabase.co`** (comum quando o ambiente só tem IPv4 ou a rota até o host direto falha).
 
-**Senha com caracteres especiais:** codifique na URL (ex.: `!` → `%21`, `@` → `%40`). Veja também `.env.example`.
+1. Dashboard → **Connect** (ou **Project Settings** → **Database** → **Connection string**)
+2. Copie a string do **Supavisor** / pooler:
+   - **Transaction mode** (6543) → valor de **`DATABASE_URL`** — acrescente `?pgbouncer=true&sslmode=require` se o painel não incluir
+   - **Session mode** (5432 no host `*.pooler.supabase.com`) → valor de **`DIRECT_URL`** — use `?sslmode=require`
+3. Usuário do pooler: **`postgres.<project-ref>`** (ex.: `postgres.nzrlmvrsoqhiovkkcbgl`), não só `postgres`
+4. **Senha com caracteres especiais:** codifique na URL (`!` → `%21`, etc.). Veja `.env.example`
 
-**Template para este projeto:**
+**Templates (ajuste `REGIAO` conforme o projeto — ex.: `us-east-1`):**
+
 ```
-postgresql://postgres:[SUA_SENHA_URL_ENCODED]@db.nzrlmvrsoqhiovkkcbgl.supabase.co:5432/postgres?sslmode=require
+DATABASE_URL="postgresql://postgres.nzrlmvrsoqhiovkkcbgl:[SENHA_URL_ENCODED]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require"
+
+DIRECT_URL="postgresql://postgres.nzrlmvrsoqhiovkkcbgl:[SENHA_URL_ENCODED]@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
 ```
 
-Se não lembrar a senha, use **Reset database password** em Project Settings → Database.
+**Só no desenvolvimento local**, se a conexão **direta** `db.nzrlmvrsoqhiovkkcbgl.supabase.co:5432` funcionar, você pode repetir a **mesma** URL em `DATABASE_URL` e `DIRECT_URL` (usuário `postgres`, sem `.ref`).
+
+Se não lembrar a senha: **Reset database password** em Project Settings → Database.
 
 ---
 
@@ -46,16 +52,14 @@ Se não lembrar a senha, use **Reset database password** em Project Settings →
 No terminal, na pasta do projeto:
 
 ```bash
-# Defina a DATABASE_URL do Supabase e rode as migrations
-DATABASE_URL="sua_connection_string_supabase" npx prisma migrate deploy
+# Com .env contendo DATABASE_URL e DIRECT_URL (migrate usa DIRECT_URL)
+npx prisma migrate deploy
 ```
 
-Ou crie um `.env` temporário:
+Ou em uma linha (use a URL de **sessão** do pooler ou a direta `db.*` em ambas):
 
 ```bash
-cp .env.example .env
-# Edite .env e cole a DATABASE_URL do Supabase
-npx prisma migrate deploy
+DATABASE_URL="..." DIRECT_URL="..." npx prisma migrate deploy
 ```
 
 ---
@@ -69,7 +73,8 @@ npx prisma migrate deploy
 
 | Chave | Valor |
 |-------|-------|
-| `DATABASE_URL` | Connection string do Supabase (Passo 2) |
+| `DATABASE_URL` | Pooler **transação** (6543), ver Passo 1 |
+| `DIRECT_URL` | Pooler **sessão** (5432 no host pooler), ver Passo 1 |
 | `JWT_PRIVATE_KEY` | Chave privada RS256 em base64 |
 | `JWT_PUBLIC_KEY` | Chave pública RS256 em base64 |
 | `PORT` | `3333` |
@@ -107,9 +112,12 @@ Depois rode `prisma migrate deploy` se necessário para alinhar o estado das mig
 
 ## Solução de problemas
 
+### `P1001: Can't reach database server` no Render (host `db.*`)
+- Configure **`DATABASE_URL`** + **`DIRECT_URL`** com o **Supavisor** (`aws-0-<região>.pooler.supabase.com`), não só `db.<ref>.supabase.co`
+- Confirme usuário **`postgres.<ref>`** e senha **URL-encoded**
+
 ### Erro de SSL
-- Verifique se a URL termina com `?sslmode=require`
-- Use a URL do **pooler** (porta 6543) para o Render
+- Inclua `?sslmode=require` (ou `&sslmode=require` após outros parâmetros)
 
 ### MCP Supabase com erro
 - Em Cursor: **Settings → Tools & MCP** e verifique o status
