@@ -82,6 +82,19 @@ DATABASE_URL="..." DIRECT_URL="..." npx prisma migrate deploy
 
 5. Salve e faça **Manual Deploy**
 
+### Comandos Build / Start no painel do Render
+
+O erro **“Port scan timeout, no open ports detected”** costuma ocorrer quando o **Start** demora demais (ex.: `prisma migrate deploy` antes do Nest subir) ou quando o processo **não abre** `PORT`. Ajuste o serviço assim:
+
+| Campo | Valor recomendado |
+|-------|-------------------|
+| **Build Command** | `npm install && npm run build:render` |
+| **Start Command** | `npm run start:prod` |
+
+O script `build:render` roda `prisma generate`, `prisma migrate deploy` e o `nest build` **na fase de build** (com `DATABASE_URL` / `DIRECT_URL` disponíveis). O **Start** só sobe o Node e abre a porta logo — o que o Render espera.
+
+Confirme também que **`PORT`** nas env vars é a mesma porta que o serviço usa (ex.: `3333` ou a que o Render injeta; o app lê `PORT` e escuta em `0.0.0.0`).
+
 ---
 
 ## Passo 5: Validar

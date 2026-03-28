@@ -30,7 +30,8 @@ async function bootstrap() {
 
   const port = configService.get('PORT', { infer: true })
 
-  await app.listen(port)
+  // Render exige escutar em 0.0.0.0 e na porta definida por PORT
+  await app.listen(port, '0.0.0.0')
 }
 
 bootstrap()
