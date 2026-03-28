@@ -20,18 +20,21 @@ O projeto **luizdefreitas10's Project** (`nzrlmvrsoqhiovkkcbgl`) já está criad
 
 ---
 
-## Passo 1: Obter a connection string
+## Passo 1: Obter a connection string (recomendado: conexão direta)
+
+Para **Prisma** e **`prisma migrate deploy`** no Render, use a conexão **direta** (porta **5432**), não o pooler na 6543 — evita erros como `FATAL: Tenant or user not found`.
 
 1. Acesse [supabase.com/dashboard](https://supabase.com/dashboard) e abra o projeto
-2. Vá em **Project Settings** (ícone ⚙️) → **Database**
-3. Em **Connection string**, selecione **URI**
-4. Escolha o modo **Transaction** (recomendado para Render/serverless, porta 6543)
-5. Copie a URL e substitua `[YOUR-PASSWORD]` pela senha do banco
-6. Adicione `?sslmode=require` no final (se ainda não tiver)
+2. **Project Settings** → **Database** → **Connection string** → **URI**
+3. Use o host **`db.<ref>.supabase.co`** e porta **5432** (modo “Direct connection”, se o painel separar)
+4. Substitua `[YOUR-PASSWORD]` pela senha real
+5. Garanta **`?sslmode=require`** no final
 
-**Template para este projeto (us-east-1):**
+**Senha com caracteres especiais:** codifique na URL (ex.: `!` → `%21`, `@` → `%40`). Veja também `.env.example`.
+
+**Template para este projeto:**
 ```
-postgresql://postgres.nzrlmvrsoqhiovkkcbgl:[SUA_SENHA]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+postgresql://postgres:[SUA_SENHA_URL_ENCODED]@db.nzrlmvrsoqhiovkkcbgl.supabase.co:5432/postgres?sslmode=require
 ```
 
 Se não lembrar a senha, use **Reset database password** em Project Settings → Database.
