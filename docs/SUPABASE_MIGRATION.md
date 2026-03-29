@@ -95,6 +95,26 @@ O script `build:render` roda `prisma generate`, `prisma migrate deploy` e o `nes
 
 Confirme também que **`PORT`** nas env vars é a mesma porta que o serviço usa (ex.: `3333` ou a que o Render injeta; o app lê `PORT` e escuta em `0.0.0.0`).
 
+### Criar o primeiro usuário ADMIN (seed)
+
+Se o banco estiver vazio (somente migrations), rode o seed de admin **uma vez**:
+
+```bash
+DATABASE_URL="..." \
+DIRECT_URL="..." \
+ADMIN_EMAIL="admin@seu-dominio.com" \
+ADMIN_PASSWORD="SUA_SENHA_FORTE" \
+ADMIN_FULL_NAME="Administrador do Sistema" \
+ADMIN_POSITION="Administrador" \
+ADMIN_DEPARTMENT="TI" \
+ADMIN_BIRTH_DATE="1990-01-01" \
+npm run db:seed-admin
+```
+
+O script é **idempotente**:
+- se o email não existir, cria usuário com `role=ADMIN`;
+- se já existir, atualiza o usuário e força `role=ADMIN`.
+
 ---
 
 ## Passo 5: Validar
